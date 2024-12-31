@@ -24,3 +24,22 @@ export const Colors = {
     tabIconSelected: tintColorDark,
   },
 };
+
+export const gvoColors = {
+  primary: '#0a7ea4',
+  secondary: '#F1F4F8',
+  background: '#F1F4F8',
+  text: '#11181C',
+  lightText: '#687076',
+  darkText: '#9BA1A6',
+  lightBackground: '#F1F4F8',
+  darkBackground: '#151718',
+  dustyOrange: "#FE5D26",
+  earthyellow: "#F2C078",
+  dutchWhite: "#FAEDCA",
+  lightgreen: "#C1DBB3",
+  emerald: "#7EBC89"
+
+
+
+}
