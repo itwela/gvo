@@ -30,15 +30,22 @@ export const gvoColors = {
   secondary: '#F1F4F8',
   background: '#F1F4F8',
   text: '#11181C',
-  lightText: '#687076',
+  lightText: '#DCDCDC',
   darkText: '#9BA1A6',
   lightBackground: '#F1F4F8',
   darkBackground: '#151718',
   dustyOrange: "#FE5D26",
   earthyellow: "#F2C078",
-  dutchWhite: "#FAEDCA",
+  // dutchWhite: "#FAEDCA",
+  dutchWhite: "#F1F4F8",
   lightgreen: "#C1DBB3",
-  emerald: "#7EBC89"
+  emerald: "#7EBC89",
+  azure: "#2684FF",
+  platinum: "#DCDCDC",
+  lightplatinum: "#E9E9E9",
+  maize: "#FFE959",
+  dark: "#151718",
+  semidark: "#4B5358",
 
 
 

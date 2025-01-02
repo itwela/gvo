@@ -10,7 +10,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.itwela.gvo"
+      "bundleIdentifier": "com.itwela.gvo",
+      "infoPlist": {
+        "ITSappUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -20,7 +23,7 @@
     },
     "web": {
       "bundler": "metro",
-      "output": "static",
+      "output": "server",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -37,6 +40,21 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "CLERK_KEY_DEV_1": "pk_test_dXNlZnVsLW9jdG9wdXMtNj",
+      "CLERK_KEY_DEV_2": "kuY2xlcmsuYWNjb3VudHMuZGV2JA",
+      "AWS_SDK_LOAD_CONFIG": 1,
+      "AWS_ACCESS_KEY_ID_PART1": "",
+      "AWS_ACCESS_KEY_ID_PART2": "",
+      "AWS_SECRET_ACCESS_KEY_PART1": "",
+      "AWS_SECRET_ACCESS_KEY_PART2": "",
+      "AWS_SECRET_ACCESS_KEY_PART3": "",
+      "SALT": "MY_SECRET_SALT",
+      "DATABASE_URL_1": "postgresql://gvostudios_owner:",
+      "DATABASE_URL_2": "TIy87qDLCAdl@ep-falling-wind-a5ynbtg6.us-east-2.aws.neon.tech/gvostudios?sslmode=require",
+      "GOOGLE_GENERATIVE_AI_API_KEY_1": "",
+      "GOOGLE_GENERATIVE_AI_API_KEY_2": ""
     }
   }
 }
