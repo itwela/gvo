@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.itwela.gvo",
+      "bundleIdentifier": "com.gvo.studios",
       "infoPlist": {
         "ITSappUsesNonExemptEncryption": false
       }
