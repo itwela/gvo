@@ -75,13 +75,19 @@ export default function Post({ id, image, username, created, content, likes }: {
                                     const createdAt = new Date(created);
                                     const now = new Date();
                                     const diffInMs = now.getTime() - createdAt.getTime();
-                                    const diffInHours = Math.floor(Math.abs(diffInMs) / (1000 * 60 * 60));
+                                    const diffInMinutes = Math.floor(Math.abs(diffInMs) / (1000 * 60));
+                                    const diffInHours = Math.floor(diffInMinutes / 60);
+                                    const diffInDays = Math.floor(diffInHours / 24);
+                                    const diffInWeeks = Math.floor(diffInDays / 7);
 
-                                    if (diffInHours >= 24) {
-                                        const diffInDays = Math.floor(diffInHours / 24);
+                                    if (diffInWeeks >= 1) {
+                                        return `${diffInWeeks}w ago`;
+                                    } else if (diffInDays >= 1) {
                                         return `${diffInDays}d ago`;
-                                    } else {
+                                    } else if (diffInHours >= 1) {
                                         return `${diffInHours}h ago`;
+                                    } else {
+                                        return `${diffInMinutes}m ago`;
                                     }
                                     })()}
                                 </Text>

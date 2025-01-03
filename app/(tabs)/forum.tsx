@@ -16,6 +16,7 @@ import sql from '@/helpers/neonClient';
 import FastImage from 'react-native-fast-image';
 import CreatePostModal from '@/components/createPostModal';
 import { useGVOContext } from '@/constants/gvoContext';
+import Post from '@/components/post';
 
 export default function ForumScreen() {
   const today = new Date();
@@ -96,40 +97,19 @@ export default function ForumScreen() {
 
         </View>
           {threads?.map((thread: any, index: number) => (
-              <View key={index} style={styles.thread}>
-                  <View style={styles.threadbox}>
-                      <View style={{width: "10%", height: "100%",}}>
-                          <View style={styles.personImage}>
-                            <FastImage source={{ uri: thread.user_img_url }} style={{width: "100%", height: "100%", borderRadius: 100}} />
-                          </View>
-                      </View>
-                      <View style={{width: "90%", height: "100%", display: "flex", flexDirection: "column"}}>
-                          <View style={{display: "flex", flexDirection: "row", gap: 5}}>
-                              <Text style={styles.personName}>{thread.username}</Text>
-                              <Text style={styles.time}>
-                                {(() => {
-                                  const createdAt = new Date(thread.created_at);
-                                  const now = new Date();
-                                  const diffInMs = now.getTime() - createdAt.getTime();
-                                  const diffInHours = Math.floor(Math.abs(diffInMs) / (1000 * 60 * 60));
-
-                                  if (diffInHours >= 24) {
-                                    const diffInDays = Math.floor(diffInHours / 24);
-                                    return `${diffInDays}d ago`;
-                                  } else {
-                                    return `${diffInHours}h ago`;
-                                  }
-                                })()}
-                              </Text>
-                          </View>
-                          <Text style={styles.personText}>{thread.content}</Text>
-                          <View style={{display: "flex", flexDirection: "row", paddingVertical: 10}}>
-                              <FontAwesome name='heart-o' size={15} color={gvoColors.dutchWhite} style={{marginRight: 5}}/>
-                              <Text style={{color: gvoColors.dutchWhite}}>{thread.like_count}</Text>
-                          </View>
-                      </View>
-                  </View>
-              </View>  
+              <Post 
+              id={thread?.id}
+              image={thread?.user_img_url}
+              username={thread?.username}
+              created={thread?.created_at}
+              content={thread?.content}
+              likes={thread?.like_count}
+              key={thread?.id}
+              // key={thread?.id}
+              // id={thread?.id}
+              // title={thread?.title}
+              // userImg={thread?.user_img_url}
+              /> 
           ))}
       </ScrollView>
           <View style={{height: 50, alignSelf: "flex-end", position: "absolute", zIndex: 3, bottom: "12%", display: "flex", justifyContent: "center", alignItems: "center", width: "100%"}}>

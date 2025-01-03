@@ -7,11 +7,18 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors, gvoColors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { AuthenticateModal } from '@/components/authModal';
+import { useGVOContext } from '@/constants/gvoContext';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const { wantsToAuthenticate, setWantsToAuthenticate } = useGVOContext();
 
+  const handleCloseModal = () => {
+    setWantsToAuthenticate?.(false);
+  }
   return (
+    <>
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: gvoColors.azure,
@@ -67,5 +74,10 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
+    <AuthenticateModal
+      visible={wantsToAuthenticate === true}
+      onClose={() => {handleCloseModal()}}
+    />
+    </>
   );
 }

@@ -1,5 +1,6 @@
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { gvoColors } from './Colors';
+import { StyleSheet } from 'react-native';
 export const linkCheck = 'https://youtube.com/mytrack'
 export const lineBreak = '\n';
 
@@ -48,3 +49,74 @@ export const faqquestions = [
         answer: ""
     },
 ]
+
+export const buttonStyle = StyleSheet.create({
+    mainButton: {
+      backgroundColor: gvoColors.azure,
+      borderRadius: 10,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      color: gvoColors.dutchWhite,
+      width: '100%',
+    },
+    mainButtonText: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      textAlign: 'center',
+    }
+  })
+  
+  export const utilStyle = StyleSheet.create({
+    container: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    safeAreaContainer: {
+      flex: 1,
+      alignItems: 'center',
+      backgroundColor: "transparent"
+    },
+    padding: {
+      padding: 20
+    },
+    text: {
+      fontSize: 60,
+      fontWeight: 'bold',
+    },
+    option: {
+      fontSize: 20,
+      paddingVertical: 10,
+      textAlign: 'center',
+      fontWeight: 'bold',
+      color: gvoColors.dutchWhite
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      textAlign: 'center',
+      color: gvoColors.dutchWhite
+    },
+    separator: {
+      marginVertical: 30,
+      height: 1,
+      width: '80%',
+    },
+    selectionText: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: gvoColors.dutchWhite
+    },
+    button: {
+        width: '100%', 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignContent: 'center', 
+        alignItems: 'center', 
+        backgroundColor: gvoColors.azure, 
+        borderRadius: 80, 
+        padding: 8,
+        marginVertical: 10,
+  },
+  })
+  

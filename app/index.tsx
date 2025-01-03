@@ -1,5 +1,4 @@
 import { useAuth } from "@clerk/clerk-expo";
-import { useReadio } from "@/constants/readioContext";
 import { Redirect } from "expo-router";
 import { useState } from "react";
 
