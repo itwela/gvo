@@ -91,15 +91,15 @@ const CreatePostModal = ({ visible, onClose, userImg }: { visible: boolean; onCl
           <View style={styles.header}>
             <View style={styles.headerLeft}>
               <TouchableOpacity onPress={onClose}>
-                <Text style={styles.closeButtonText}>Cancel</Text>
+                <Text allowFontScaling={false} style={styles.closeButtonText}>Cancel</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.headerCenter}>
-              <Text style={styles.closeButtonText}>New Post</Text>
+              <Text allowFontScaling={false} style={styles.closeButtonText}>New Post</Text>
             </View>
             <View style={styles.headerRight}>
               <View style={styles.infoIcon}>
-                <Text style={{ fontWeight: 'bold' }}>i</Text>
+                <Text allowFontScaling={false} style={{ fontWeight: 'bold' }}>i</Text>
               </View>
             </View>
           </View>

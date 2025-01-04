@@ -42,10 +42,10 @@ export default function HomeScreen() {
           <Header/>
 
           <View style={styles.titleContainer}>
-            <Text style={{ fontSize: fontSizes.large, color: gvoColors.dutchWhite, fontWeight: 'bold', width: "80%" }}>Welcome to GVO Studios.</Text>
+            <Text allowFontScaling={false} style={{ fontSize: fontSizes.large, color: gvoColors.dutchWhite, fontWeight: 'bold', width: "80%" }}>Welcome to GVO Studios.</Text>
           </View>
           <TouchableOpacity activeOpacity={0.9} onPress={() => {router.push("/book")}} style={{marginVertical: 10, backgroundColor: gvoColors.azure, borderRadius: 10, padding: 10}}>
-            <Text style={{ fontSize: fontSizes.small, textDecorationLine: "underline", fontWeight: 'bold', color: gvoColors.dutchWhite, textAlign: "center"}}>Want to book studio time? Click here.</Text>
+            <Text allowFontScaling={false} style={{ fontSize: fontSizes.small, textDecorationLine: "underline", fontWeight: 'bold', color: gvoColors.dutchWhite, textAlign: "center"}}>Want to book studio time? Click here.</Text>
           </TouchableOpacity>
 
           <View style={{display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
@@ -53,7 +53,7 @@ export default function HomeScreen() {
               <View style={{width: "100%", height: 250, display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 10, backgroundColor: "transparent", borderRadius: 10}}>
                 
                 <TouchableOpacity activeOpacity={0.9} onPress={handleOpenModal} style={{width: "100%", height: 40, display: "flex", justifyContent: "space-between", flexDirection: "row", alignItems: "center", paddingHorizontal: 10, backgroundColor: gvoColors.semidark, borderRadius: 10}}>
-                  <Text style={styles.headlinetext}>FAQ</Text>
+                  <Text allowFontScaling={false} style={styles.headlinetext}>FAQ</Text>
                   <FontAwesome name="angle-right" style={{fontWeight: "bold"}} size={24} color={gvoColors.dutchWhite} />
                 </TouchableOpacity>
                
@@ -73,7 +73,7 @@ export default function HomeScreen() {
                 <View style={{width: "100%", height: 80, justifyContent: "flex-end", backgroundColor: gvoColors.semidark, borderRadius: 10}}>
 
                 <View style={{width: "100%", display: "flex", justifyContent: "space-between", flexDirection: "row", alignItems: "center", padding: 10, backgroundColor: gvoColors.semidark, borderRadius: 10}}>
-                  <Text style={styles.headlinetext}>Events</Text>
+                  <Text allowFontScaling={false} style={styles.headlinetext}>Events</Text>
                   <FontAwesome name="angle-right" style={{fontWeight: "bold"}} size={24} color={gvoColors.dutchWhite} />
                 </View>
 
@@ -87,7 +87,7 @@ export default function HomeScreen() {
                   <FastImage source={{uri: "https://images.pexels.com/photos/257904/pexels-photo-257904.jpeg?auto=compress&cs=tinysrgb&w=1200"}} style={{width: "100%", height: "100%", position: "absolute",zIndex: -1, bottom: 0, borderRadius: 10}} />
 
               <View style={{width: "100%", display: "flex", flexDirection: "row", alignItems: "center", padding: 10, backgroundColor: "transparent", borderRadius: 10}}>
-                  <Text style={[styles.headlinetext, {backgroundColor: gvoColors.dark, paddingHorizontal: 15, borderRadius: 10}]}>Good Vibes Only.</Text>
+                  <Text allowFontScaling={false} style={[styles.headlinetext, {backgroundColor: gvoColors.dark, paddingHorizontal: 15, borderRadius: 10}]}>Good Vibes Only.</Text>
                   {/* <FontAwesome name="anxgle-right" style={{fontWeight: "bold"}} size={24} color={gvoColors.dutchWhite} /> */}
                 </View>
 

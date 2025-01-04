@@ -48,7 +48,7 @@ const StartSelector = ({ availableTimes, roomId }: { availableTimes?: Array<{ id
   return (
     <View style={{ width: '100%', alignItems: 'center', position: 'relative' }}>
       <TouchableOpacity onPress={() => setModalVisible(true)} style={{ paddingVertical: 10 }}>
-        <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'white' }}>
+        <Text allowFontScaling={false} style={{ fontSize: 16, fontWeight: 'bold', color: 'white' }}>
           {selectedTime ? formatTime(selectedTime) : "Select Time"}
         </Text>
       </TouchableOpacity>
@@ -65,14 +65,14 @@ const StartSelector = ({ availableTimes, roomId }: { availableTimes?: Array<{ id
                   onPress={() => handleTime(item)}
                   style={{ padding: 10, backgroundColor: 'gray' }}
                 >
-                  <Text style={{ fontSize: 16, color: 'white' }}>
+                  <Text allowFontScaling={false} style={{ fontSize: 16, color: 'white' }}>
                     {formatTime(item.start_time)}
                   </Text>
                 </TouchableOpacity>
               )}
             />
             <TouchableOpacity onPress={() => setModalVisible(false)} style={{ padding: 10, width: '100%', alignItems: 'flex-end' }}>
-              <Text style={{ color: 'white' }}>Close</Text>
+              <Text allowFontScaling={false} style={{ color: 'white' }}>Close</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -127,7 +127,7 @@ const StartSelectorAdmin = (availableTimes?: any) => {
         onPress={() => setModalVisible(true)}
         style={{ backgroundColor: 'transparent', position: 'relative', paddingVertical: 10 }}
       >
-        <Text style={{ fontSize: 14, color: "white", fontWeight: "bold" }}>
+        <Text allowFontScaling={false} style={{ fontSize: 14, color: "white", fontWeight: "bold" }}>
           {selectedTime || "Select Time"}
         </Text>
       </TouchableOpacity>
@@ -167,7 +167,7 @@ const StartSelectorAdmin = (availableTimes?: any) => {
                   }}
                   style={{ padding: 10, backgroundColor: '#222' }}
                 >
-                  <Text style={{ fontSize: 14, color: '#fff' }}>{item.display || 'Select Time'}</Text>
+                  <Text allowFontScaling={false} style={{ fontSize: 14, color: '#fff' }}>{item.display || 'Select Time'}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -175,7 +175,7 @@ const StartSelectorAdmin = (availableTimes?: any) => {
               onPress={() => setModalVisible(false)}
               style={{ padding: 10, width: '100%', alignItems: 'flex-end' }}
             >
-              <Text style={{ color: '#fff' }}>Close</Text>
+              <Text allowFontScaling={false} style={{ color: '#fff' }}>Close</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -270,7 +270,7 @@ const EndSelectorAdmin = () => {
                   }}
                   style={{ padding: 10, backgroundColor: '#222' }}
                 >
-                  <Text style={{ fontSize: 14, color: '#fff' }}>{item.display || 'Select Time'}</Text>
+                  <Text allowFontScaling={false} style={{ fontSize: 14, color: '#fff' }}>{item.display || 'Select Time'}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -278,7 +278,7 @@ const EndSelectorAdmin = () => {
               onPress={() => setModalVisible(false)}
               style={{ padding: 10, width: '100%', alignItems: 'flex-end' }}
             >
-              <Text style={{ color: '#fff' }}>Close</Text>
+              <Text allowFontScaling={false} style={{ color: '#fff' }}>Close</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -543,13 +543,13 @@ const addAdminTime = async (startTime: string, endTime: string, startDate: strin
 
           <View style={styles.titleContainer}>
             {adminMode === false && (
-              <Text style={{ fontSize: fontSizes.large, fontWeight: 'bold', width: "80%" , color: gvoColors.dutchWhite}}>Studio Time.</Text>
+              <Text allowFontScaling={false} style={{ fontSize: fontSizes.large, fontWeight: 'bold', width: "80%" , color: gvoColors.dutchWhite}}>Studio Time.</Text>
             )}
 
             {adminMode === true && (
               <>
               <View style={{width: "100%", display: "flex", flexDirection: "column"}}>
-                <Text style={{ fontSize: fontSizes.large, fontWeight: 'bold', width: "90%" , color: gvoColors.dutchWhite}}>GVO Schedule.</Text>
+                <Text allowFontScaling={false} style={{ fontSize: fontSizes.large, fontWeight: 'bold', width: "90%" , color: gvoColors.dutchWhite}}>GVO Schedule.</Text>
               </View>
               </>
             )}
@@ -562,7 +562,7 @@ const addAdminTime = async (startTime: string, endTime: string, startDate: strin
                 {daySelectedIndex === -1 && (
                   <>
                     <View style={{alignItems: "center", display: "flex", justifyContent: "center", flexDirection: "row", gap: 10}}>
-                      <Text style={[{fontSize: fontSizes.small, fontWeight: "bold", color: gvoColors.dutchWhite, textAlign: "center"}]}>Admin Mode</Text>
+                      <Text  style={[{fontSize: fontSizes.small, fontWeight: "bold", color: gvoColors.dutchWhite, textAlign: "center"}]}>Admin Mode</Text>
                       <Switch value={adminMode}  onValueChange={() => {setAdminMode(!adminMode)}}/>
                     </View>
                   </>
@@ -583,7 +583,7 @@ const addAdminTime = async (startTime: string, endTime: string, startDate: strin
                   </TouchableOpacity>
                 )}
 
-                <Text style={{color: gvoColors.dutchWhite, fontSize: fontSizes.medium, fontWeight: 'bold',}}>{months[startDate.getMonth()]} {startDate.getFullYear()}</Text>
+                <Text allowFontScaling={false} style={{color: gvoColors.dutchWhite, fontSize: fontSizes.medium, fontWeight: 'bold',}}>{months[startDate.getMonth()]} {startDate.getFullYear()}</Text>
                 
                 <TouchableOpacity onPress={() => handleArrowClick('forward')}>
                   <FontAwesome name="arrow-right" size={24} color={gvoColors.azure} />
@@ -617,14 +617,14 @@ const addAdminTime = async (startTime: string, endTime: string, startDate: strin
                       key={index} 
                       disabled={isPast} // Disable past days
                       >
-                      <Text style={{ 
+                      <Text allowFontScaling={false} style={{ 
                         fontSize: fontSizes.medium, 
                         fontWeight: 'bold', 
                         color: isPast ? gvoColors.semidark : (isSelected ? "white" : gvoColors.dutchWhite) 
                       }}>
                         {new Date(step).getDate()}
                       </Text>
-                      {isToday && <View style={{ borderRadius: 5, backgroundColor: gvoColors.maize, padding:2, width: 55, display: "flex", alignItems: "center", position: 'absolute', top:"-40%", left: "-5%", zIndex: 10}}><Text style={{fontWeight: "bold", fontSize: fontSizes.small}}>Today</Text></View>}
+                      {isToday && <View style={{ borderRadius: 5, backgroundColor: gvoColors.maize, padding:2, width: 55, display: "flex", alignItems: "center", position: 'absolute', top:"-40%", left: "-5%", zIndex: 10}}><Text allowFontScaling={false} style={{fontWeight: "bold", fontSize: fontSizes.small}}>Today</Text></View>}
                       {hasAvailability && <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: gvoColors.azure, position: 'absolute', top: 5, right: 5 }} />}
                     </TouchableOpacity>
                   );
@@ -645,34 +645,34 @@ const addAdminTime = async (startTime: string, endTime: string, startDate: strin
                         rooms.slice(1, 4).map((room, roomIndex) => (
                           <View key={roomIndex} style={styles.roomContainer}>
                             <View style={[styles.roomHeader, {backgroundColor: room === "A Room" ? gvoColors.azure : room === "B Room" ? gvoColors.maize : room === "C Room" ? gvoColors.semidark : "transparent"}]}>
-                              <Text style={[styles.roomText, {color: room === "B Room" ? gvoColors.dark : gvoColors.dutchWhite}]}>{rooms[roomIndex + 1]}</Text>
-                                <Text style={styles.roomSubText}>
+                              <Text allowFontScaling={false} style={[styles.roomText, {color: room === "B Room" ? gvoColors.dark : gvoColors.dutchWhite}]}>{rooms[roomIndex + 1]}</Text>
+                                <Text allowFontScaling={false} style={styles.roomSubText}>
                                   Available
                                 </Text>
                             </View>
                             <View style={styles.sessionContainer}>
                               <View style={{width: "100%", display: "flex", flexDirection: "row", marginBottom: 10, justifyContent: "space-between"}}>
-                                <Text style={{color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small}}>Book while it's available:</Text>
+                                <Text allowFontScaling={false} style={{color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small}}>Book while it's available:</Text>
                                 <View style={{display: "flex", alignItems: "center", justifyContent: "center", width: 20, height: 20, borderRadius: 50, backgroundColor: gvoColors.semidark,}}>
-                                  <Text style={{color: gvoColors.dark, fontWeight: "bold", fontSize: fontSizes.small}}>?</Text>
+                                  <Text allowFontScaling={false} style={{color: gvoColors.dark, fontWeight: "bold", fontSize: fontSizes.small}}>?</Text>
                                 </View>
                               </View>
                               <View style={{width: "100%", display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
                                 <View style={{width: "75%", display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center"}}>
                                   <View style={{display: "flex", flexDirection: "column", gap: 5}}>
-                                    <Text style={{color: gvoColors.semidark, fontWeight: "bold", fontSize: fontSizes.small}}>Starts:</Text>
+                                    <Text allowFontScaling={false} style={{color: gvoColors.semidark, fontWeight: "bold", fontSize: fontSizes.small}}>Starts:</Text>
                                     <StartSelector availableTimes={todaysAvailability} roomId={roomIndex + 1}/>
                                   </View>
                                   <View style={{display: "flex", flexDirection: "column", gap: 5}}>
-                                    <Text style={{color: gvoColors.semidark, fontWeight: "bold", fontSize: fontSizes.small}}>I want to book:</Text>
+                                    <Text allowFontScaling={false} style={{color: gvoColors.semidark, fontWeight: "bold", fontSize: fontSizes.small}}>I want to book:</Text>
                                     <View style={{display: "flex", flexDirection: "row", gap: 6, alignItems: "center"}}>
                                      <FontAwesome onPress={() => handleMinusTime(roomIndex)} name="minus" size={fontSizes.small - 3} style={{backgroundColor: gvoColors.maize, borderRadius: 50, padding: 2}} color={gvoColors.dark} />
                                         <View style={{display: "flex", alignItems: 'center', flexDirection: "row", gap: 0}}>
-                                        <Text style={{ color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.medium - 6 }}>
+                                        <Text allowFontScaling={false} style={{ color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.medium - 6 }}>
                                           {cardTimes[roomIndex] || defaultTimeAmount} hour
                                         </Text>
                                         {cardTimes[roomIndex] > 1 && (
-                                          <Text style={{ color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small}}>(s)</Text>                                     
+                                          <Text allowFontScaling={false} style={{ color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small}}>(s)</Text>                                     
                                         )}
                                       </View>
                                        <FontAwesome onPress={() => handlePlusTime(roomIndex)} name="plus" size={fontSizes.small - 3} style={{backgroundColor: gvoColors.maize, borderRadius: 50, padding: 2}} color={gvoColors.dark} />
@@ -681,7 +681,7 @@ const addAdminTime = async (startTime: string, endTime: string, startDate: strin
                                 </View>
                                 <View style={{display: "flex", alignItems: "center", justifyContent: "center"}}>
                                   <TouchableOpacity onPress={() => bookTime(userStartTime, cardTimes[roomIndex] || defaultTimeAmount, roomIndex + 1, userStartTime)} style={{display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: gvoColors.azure, padding: 10, borderRadius: 6}}>
-                                    <Text style={{color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small}}>Book</Text>
+                                    <Text allowFontScaling={false} style={{color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small}}>Book</Text>
                                   </TouchableOpacity>
                                 </View>
                               </View>
@@ -709,25 +709,25 @@ const addAdminTime = async (startTime: string, endTime: string, startDate: strin
                             </View>
                             <View style={styles.sessionContainer}>
                               <View style={{width: "100%", display: "flex", flexDirection: "row", marginBottom: 10, justifyContent: "space-between"}}>
-                                <Text style={{color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small}}>Set GVO's session availability here:</Text>
+                                <Text allowFontScaling={false} style={{color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small}}>Set GVO's session availability here:</Text>
                                 <View style={{display: "flex", alignItems: "center", justifyContent: "center", width: 20, height: 20, borderRadius: 50, backgroundColor: gvoColors.semidark,}}>
-                                  <Text style={{color: gvoColors.dark, fontWeight: "bold", fontSize: fontSizes.small}}>?</Text>
+                                  <Text allowFontScaling={false} style={{color: gvoColors.dark, fontWeight: "bold", fontSize: fontSizes.small}}>?</Text>
                                 </View>
                               </View>
                               <View style={{width: "100%", display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
                                 <View style={{width: "70%", display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center"}}>
                                   <View style={{display: "flex", flexDirection: "column", gap: 5}}>
-                                    <Text style={{color: gvoColors.semidark, fontWeight: "bold", fontSize: fontSizes.small}}>Start Time</Text>
+                                    <Text allowFontScaling={false} style={{color: gvoColors.semidark, fontWeight: "bold", fontSize: fontSizes.small}}>Start Time</Text>
                                     <StartSelectorAdmin />
                                     </View>
                                   <View style={{display: "flex", flexDirection: "column", gap: 5}}>
-                                    <Text style={{color: gvoColors.semidark, fontWeight: "bold", fontSize: fontSizes.small}}>End Time</Text>
+                                    <Text allowFontScaling={false} style={{color: gvoColors.semidark, fontWeight: "bold", fontSize: fontSizes.small}}>End Time</Text>
                                     <EndSelectorAdmin />
                                     </View>
                                 </View>
                                 <View style={{display: "flex", alignItems: "center", justifyContent: "center"}}>
                                   <TouchableOpacity onPress={() => addAdminTime(adminStartTime, adminEndTime, adminStartTime)} style={{display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: gvoColors.azure, padding: 10, borderRadius: 6}}>
-                                    <Text style={{color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small}}>Book</Text>
+                                    <Text allowFontScaling={false} style={{color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small}}>Book</Text>
                                   </TouchableOpacity>
                                 </View>
                               </View>

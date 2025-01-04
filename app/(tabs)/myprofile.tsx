@@ -75,9 +75,9 @@ export default function MyProfileScreen() {
                     </View>
                     <View style={{position: "relative", zIndex: 2, padding: 20, display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start"}}>
                         <View style={{display: "flex", width: "70%", flexDirection: "column"}}>
-                            <Text style={{color: gvoColors.dutchWhite, fontSize: fontSizes.small + 6, fontWeight: "bold"}}>{gvoUser?.[0]?.name}</Text>
-                            <Text style={{color: gvoColors.dutchWhite, fontSize: fontSizes.small,}}>{gvoUser?.[0]?.username}</Text>
-                            <Text numberOfLines={5} style={{backgroundColor: "transparent", marginVertical: 10, width: "95%", color: gvoColors.dutchWhite, fontSize: fontSizes.small}}>
+                            <Text allowFontScaling={false} style={{color: gvoColors.dutchWhite, fontSize: fontSizes.small + 6, fontWeight: "bold"}}>{gvoUser?.[0]?.name}</Text>
+                            <Text allowFontScaling={false} style={{color: gvoColors.dutchWhite, fontSize: fontSizes.small,}}>{gvoUser?.[0]?.username}</Text>
+                            <Text allowFontScaling={false} numberOfLines={5} style={{backgroundColor: "transparent", marginVertical: 10, width: "95%", color: gvoColors.dutchWhite, fontSize: fontSizes.small}}>
                                 {gvoUser?.[0]?.bio}
                             </Text>
                         </View>
@@ -88,8 +88,8 @@ export default function MyProfileScreen() {
                 </View>
 
                 <View style={{width: "100%", height: 25, backgroundColor: "transparent", display: "flex", flexDirection: "row", justifyContent: "space-around"}}>
-                    <Text onPress={() => {setPostIsSelected(true); setSessionIsSelected(false)}} style={{color: postIsSelected ? gvoColors.azure : gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small + 6}}>Posts</Text>
-                    <Text onPress={() => {setPostIsSelected(false); setSessionIsSelected(true)}} style={{color: sessionIsSelected ? gvoColors.azure : gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small + 6}}>Sessions</Text>
+                    <Text allowFontScaling={false} onPress={() => {setPostIsSelected(true); setSessionIsSelected(false)}} style={{color: postIsSelected ? gvoColors.azure : gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small + 6}}>Posts</Text>
+                    <Text allowFontScaling={false} onPress={() => {setPostIsSelected(false); setSessionIsSelected(true)}} style={{color: sessionIsSelected ? gvoColors.azure : gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small + 6}}>Sessions</Text>
                 </View>
 
                 <View style={{width: "100%", height: 15, backgroundColor: "transparent", display: "flex", flexDirection: "row", justifyContent: "space-around"}}>

@@ -18,12 +18,12 @@ export default function Header () {
     return (
         <>
         <View style={{display: "flex", alignItems: "center", width: "100%", flexDirection: "row", justifyContent: "space-between"}}>
-            <Text onPress={() => {router.push("/")}} style={{fontWeight: "bold", fontSize: fontSizes.small, color: gvoColors.dutchWhite}}>GVO</Text>
+            <Text allowFontScaling={false} onPress={() => {router.push("/")}} style={{fontWeight: "bold", fontSize: fontSizes.small, color: gvoColors.dutchWhite}}>GVO</Text>
             <SignedIn>
-            <   Text onPress={() => {}} style={{fontWeight: "bold", fontSize: fontSizes.small, color: gvoColors.dutchWhite}}>Log Out</Text>
+            <Text allowFontScaling={false} onPress={() => {}} style={{fontWeight: "bold", fontSize: fontSizes.small, color: gvoColors.dutchWhite}}>Log Out</Text>
             </SignedIn>
             <SignedOut>
-                <Text onPress={() => {handleOpenModal()}} style={{fontWeight: "bold", fontSize: fontSizes.small, color: gvoColors.dutchWhite}}>Get Started</Text>
+                <Text allowFontScaling={false} onPress={() => {handleOpenModal()}} style={{fontWeight: "bold", fontSize: fontSizes.small, color: gvoColors.dutchWhite}}>Get Started</Text>
             </SignedOut>
         </View>
         </>
