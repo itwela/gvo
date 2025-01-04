@@ -50,6 +50,13 @@ export const AuthenticateModal = ({ visible, onClose }: { visible: boolean; onCl
           if (signInAttempt?.status === "complete") {
             await setActive?.({ session: signInAttempt.createdSessionId });
             router.replace("/(tabs)/home");
+            setForm({
+              name: '',
+              email: '',
+              password: '',
+              adminCode: '',
+            })
+            onClose();
           } else {
             // See https://clerk.com/docs/custom-flows/error-handling for more info on error handling
             console.log(JSON.stringify(signInAttempt, null, 2));
@@ -80,89 +87,83 @@ export const AuthenticateModal = ({ visible, onClose }: { visible: boolean; onCl
           Alert.alert("Error", err.errors[0].longMessage);
         }
       };
-      const onPressVerify = async () => {
-        if (!isLoaded) return;
-  
-        try {
-  
-          const completeSignUp = await signUp?.attemptEmailAddressVerification({
-            code: verification.code,
-          });
-  
-          if (completeSignUp?.status === "complete") {
-            
-            const createdUserResponse = await sql`
-            INSERT INTO users (
-                name,
-                email,
-                clerk_id,
-                topics
-            )
-            VALUES (
-                ${form.name},
-                ${form.email},
-                ${completeSignUp.createdUserId},
-            )
-            `;
-  
-            const stationIds = await Promise.all(
-              [1,2,3,4,5]?.map(async (topicName: any) => {
-                  const result = await sql`
-                      SELECT id FROM stations WHERE name = ${topicName};
-                  `;
-                  
-                  // If the station is found, return its ID; otherwise, return null
-                  return result.length > 0 ? result[0].id : null;
-              }) || []
-            );
-  
-            // Filter out any topics that didn't match a station name
-            const validStationIds = stationIds?.filter((id) => id !== null);
-  
-            // Associate user (clerkId) with valid station IDs
-            const stationCreationResponse = await Promise.all(
-                validStationIds.map(async (stationId: string) => {
-                    return await sql`
-                        INSERT INTO station_clerks (
-                            station_id,
-                            clerk_id
-                        )
-                        VALUES (
-                            ${stationId},
-                            ${completeSignUp.createdUserId}
-                        )
-                        ON CONFLICT DO NOTHING
-                        RETURNING *;
-                    `;
-                })
-            );
-  
-            await setActive?.({ session: completeSignUp.createdSessionId });
-  
-            setVerification({
-              ...verification,
-              state: "success",
-            });
-  
-            console.log("verified", verification.state)
-  
-          } else {
-            setVerification({
-              ...verification,
-              error: "Verification failed. Please try again.",
-              state: "failed",
-            });
-          }
-        } catch (err: any) {
-          // See https://clerk.com/docs/custom-flows/error-handling
-          // for more info on error handling
-          setVerification({
+    const onPressVerify = async () => {
+    if (!isLoaded) return;
+
+    try {
+
+        const completeSignUp = await signUp?.attemptEmailAddressVerification({
+        code: verification.code,
+        });
+
+        console.log("completeSignUp", completeSignUp)
+
+        if (completeSignUp?.status === "complete") {
+        
+        const role = form.adminCode === 'NARQSWORLD' ? 'admin' : 'user'
+        const image = 'https://images.pexels.com/photos/8058392/pexels-photo-8058392.jpeg?auto=compress&cs=tinysrgb&w=1200'
+        const bio = ""
+
+        const createdUserResponse = await sql`
+        INSERT INTO users (
+            name,
+            email,
+            password,
+            role,
+            username,
+            user_img_url,
+            bio,
+            clerk_id,
+            admin_code
+        )
+        VALUES (
+            ${form.name},
+            ${form.email},
+            ${form.password},
+            ${role},
+            ${form.name},
+            ${image},
+            ${bio},
+            ${completeSignUp.createdUserId},
+            ${form.adminCode}
+        )
+        RETURNING *;
+        `;
+
+        await setActive?.({ session: completeSignUp.createdSessionId });
+
+        setVerification({
             ...verification,
-            error: err.errors[0].longMessage,
+            state: "success",
+        });
+
+        console.log("verified", verification.state)
+
+        } else {
+        setVerification({
+            ...verification,
+            error: "Verification failed. Please try again.",
             state: "failed",
-          });
+        });
         }
-      };
+    } catch (err: any) {
+        // See https://clerk.com/docs/custom-flows/error-handling
+        // for more info on error handling
+        setVerification({
+        ...verification,
+        error: err.errors[0].longMessage,
+        state: "failed",
+        });
+    }
+    };
+
+    const handleCompleteSignUp = async () => {
+        setForm({name: "", email: "", password: "", adminCode: ""});
+        setShowSuccessModal(false);
+        // router.replace("/(tabs)/myprofile")
+        // onClose();
+        // setWantsToAuthenticate?.(false);
+    }
 
     return (
         <Modal
@@ -178,7 +179,7 @@ export const AuthenticateModal = ({ visible, onClose }: { visible: boolean; onCl
                     <View style={{width: '100%', height: 20, flexDirection: 'row', alignContent: 'center', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                         
                         <Text style={{ color: gvoColors.dutchWhite, fontSize: fontSizes.small, fontWeight: 'bold' }}>GVO</Text>
-                        <TouchableOpacity onPress={onClose}>
+                        <TouchableOpacity onPress={() => { setForm({name: '', email: '', password: '', adminCode: ''}); onClose();}}>
                             <Text style={{ color: gvoColors.dutchWhite, fontSize: fontSizes.small }}>Close</Text>
                         </TouchableOpacity>
                     </View>
@@ -323,7 +324,7 @@ export const AuthenticateModal = ({ visible, onClose }: { visible: boolean; onCl
                                     <View style={{ width: '100%', display: 'flex', justifyContent: 'center', alignContent: 'center', alignItems: 'center', flexDirection: 'row', gap: 10}}>
 
                                     <Text style={[styles.option, {color: '#999999'}]}>Already have an account?</Text>
-                                    <TouchableOpacity  onPress={() => { setWantsToSignUp?.(false); setWantsToLogIn?.(true); }}>
+                                    <TouchableOpacity  onPress={() => { setWantsToSignUp?.(false); setWantsToLogIn?.(true); setForm({name: "", email: "", password: "", adminCode: ""}); }}>
                                         <Text style={{color: gvoColors.azure,  fontSize: 20}}>Log in</Text>
                                     </TouchableOpacity>
                             
@@ -353,9 +354,9 @@ export const AuthenticateModal = ({ visible, onClose }: { visible: boolean; onCl
                                 
                                 <View style={styles.modalView}>
 
-                                <View style={{width: "100%", display: "flex", flexDirection: "column"}}>
-                                    <Text style={[styles.option, {fontWeight: 'bold'}]}>Verification</Text>
-                                    <Text style={{marginBottom: 0, color: gvoColors.dark, fontStyle: 'italic'}}>We've sent a code to {form.email}. Please enter it below.</Text>
+                                <View style={{width: "100%", display: "flex",  flexDirection: "column"}}>
+                                    <Text style={[styles.option, {fontWeight: 'bold', color: gvoColors.dutchWhite}]}>Verification</Text>
+                                    <Text style={{marginBottom: 0, color: gvoColors.dutchWhite, fontStyle: 'italic'}}>We've sent a code to {form.email}. Please enter it below.</Text>
                                 </View>
                                 
                                 <View style={{width: "100%", height: 80}}>
@@ -364,7 +365,7 @@ export const AuthenticateModal = ({ visible, onClose }: { visible: boolean; onCl
                                     value={verification.code}
                                     keyboardType="numeric"
                                     onChangeText={(code) => setVerification({ ...verification, code })}
-                                    placeholderTextColor={gvoColors.dark}
+                                    placeholderTextColor={gvoColors.dutchWhite}
                                     style={styles.inputBar}
                                     numberOfLines={1}
                                     />
@@ -389,14 +390,13 @@ export const AuthenticateModal = ({ visible, onClose }: { visible: boolean; onCl
                                 
                                 <View style={styles.modalView}>
                                 {/* <Image source={icons.check} style={styles.modalImage}/> */}
-                                <Text style={[styles.option, {textAlign: 'center', fontWeight: 'bold'}]}>Verified</Text>
-                                <Text style={{textAlign: 'center', marginBottom: 20, color: gvoColors.dark, fontStyle: 'italic'}}>You have successsfully verified your account.</Text>
+                                <Text style={[styles.option, {textAlign: 'center', color: gvoColors.dutchWhite, fontWeight: 'bold'}]}>Verified ✅</Text>
+                                <Text style={{textAlign: 'center', marginBottom: 20, color: gvoColors.dutchWhite, fontStyle: 'italic'}}>You have successsfully verified your account.</Text>
                                 <TouchableOpacity style={buttonStyle.mainButton} 
                                 onPress={() => {
-                                    setShowSuccessModal(false);
-                                    router.push('/(tabs)/home');
+                                    handleCompleteSignUp();
                                 }}>
-                                    <Text style={[buttonStyle.mainButtonText, {color: gvoColors.dutchWhite}]}>Home</Text>
+                                    <Text style={[buttonStyle.mainButtonText, {color: gvoColors.dutchWhite}]}>Close</Text>
                                 </TouchableOpacity>
                                 </View>
 
@@ -405,8 +405,6 @@ export const AuthenticateModal = ({ visible, onClose }: { visible: boolean; onCl
                                 </View>
                             </>
                         )}
-
-
 
                     </KeyboardAvoidingView>
 
@@ -431,6 +429,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         backgroundColor: gvoColors.semidark,
         padding: 10,
+        color: gvoColors.dutchWhite
     },
     modalContainer: {
       width: '100%',
@@ -443,7 +442,7 @@ const styles = StyleSheet.create({
       zIndex: 100,
     },
     modalView: {
-        backgroundColor: gvoColors.dutchWhite,
+        backgroundColor: gvoColors.dark,
         paddingHorizontal: 28,
         paddingVertical: 20,
         borderRadius: 20,

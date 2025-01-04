@@ -23,12 +23,16 @@ interface GVOContextType {
     setDaySelectedIndex?: (value: number) => void;
     threads?: any;
     setThreads?: (value: any) => void;
+    allThreads?: any;
+    setAllThreads?: (value: any) => void;
     sessions?: any;
     setSessions?: (value: any) => void;
-    isPostLiked?: boolean;
-    setIsPostLiked?: (value: boolean) => void
+    likedPosts?: any;
+    setLikedPosts?: (value: any) => void
     likedPostId?: any;
     setLikedPostId?: (value: any) => void
+    gvoUserName?: string;
+    setGvoUserName?: (value: string) => void
 }  
 
 const GVOContext = createContext<GVOContextType | null>(null);
@@ -46,8 +50,10 @@ export const GVOProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const [daySelectedIndex, setDaySelectedIndex] = useState<number>(-1);
     const [threads, setThreads] = useState<any>();
     const [sessions, setSessions] = useState<any>();
-    const [isPostLiked, setIsPostLiked] = useState<boolean>(false);
+    const [allThreads, setAllThreads] = useState<any>();
+    const [likedPosts, setLikedPosts] = useState<any>();
     const [likedPostId, setLikedPostId] = useState<any>();
+    const [gvoUserName, setGvoUserName] = useState<string>('');
     return (
         <>
             <GVOContext.Provider value={{
@@ -73,12 +79,16 @@ export const GVOProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 setDaySelectedIndex,
                 threads,
                 setThreads,
+                allThreads,
+                setAllThreads,
                 sessions,
                 setSessions,
-                isPostLiked,
-                setIsPostLiked,
+                likedPosts,
+                setLikedPosts,
                 likedPostId,
-                setLikedPostId
+                setLikedPostId,
+                gvoUserName,    
+                setGvoUserName
             }}>
                 {children}
             </GVOContext.Provider>

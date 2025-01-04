@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
@@ -9,14 +9,39 @@ import { Colors, gvoColors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { AuthenticateModal } from '@/components/authModal';
 import { useGVOContext } from '@/constants/gvoContext';
+import { useUser } from '@clerk/clerk-expo';
+import sql from '@/helpers/neonClient';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const { wantsToAuthenticate, setWantsToAuthenticate } = useGVOContext();
+  const { gvoUserName, setGvoUserName } = useGVOContext();
+  const { user } = useUser();
 
   const handleCloseModal = () => {
     setWantsToAuthenticate?.(false);
   }
+
+  useEffect(() => {
+    const fetchUserName = async () => {
+      if (user) {
+        try {
+          const response = await sql`SELECT * FROM users WHERE clerk_id = ${user.id}`;
+          if (response.length > 0) {
+            setGvoUserName?.(response[0].username);
+            console.log("gvoUserName", response[0].username);
+          } else {
+            console.error("No user found with the given ID.");
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+      }
+    };
+  
+    fetchUserName();
+  }, [user]);
+
   return (
     <>
     <Tabs

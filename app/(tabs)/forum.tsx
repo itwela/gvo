@@ -17,6 +17,7 @@ import FastImage from 'react-native-fast-image';
 import CreatePostModal from '@/components/createPostModal';
 import { useGVOContext } from '@/constants/gvoContext';
 import Post from '@/components/post';
+import { useUser } from '@clerk/clerk-expo';
 
 export default function ForumScreen() {
   const today = new Date();
@@ -40,7 +41,7 @@ export default function ForumScreen() {
       setModalVisible(false);
   }
 
-  const {threads, setThreads} = useGVOContext();
+  const {threads, allThreads, setThreads, setAllThreads} = useGVOContext();
   const {sessions, setSessions} = useGVOContext();
   const [gvoUser, setGvoUser] = useState<any>();
 
@@ -48,14 +49,14 @@ export default function ForumScreen() {
     "", "A Room", "B Room", "C Room"
   ]
   const {contentForm, setContentForm} = useGVOContext();
-  const {isPostLiked, setIsPostLiked} = useGVOContext();
   const {likedPostId, setLikedPostId} = useGVOContext();
-  const uid = "45531ae2-35cf-419d-b690-4a445401bcee"
+  const {user} = useUser();  
+  const uid = user?.id;
 
 
   const fetchUser = async () => {
     const userName = 'Twezo'
-    const result = await sql`SELECT * FROM users WHERE username = ${userName}`;
+    const result = await sql`SELECT * FROM users WHERE clerk_id = ${uid}`;
     setGvoUser(result);
     console.log(result);
   };
@@ -66,24 +67,25 @@ export default function ForumScreen() {
     console.log(result);
   };
 
-  const fetchSessions = async () => {
-    const result = await sql`SELECT * FROM bookings ORDER BY created_at DESC`;
-    setSessions?.(result);
+  const fetchAllThreads = async () => {
+    const result = await sql`SELECT * FROM posts ORDER BY created_at DESC`;
+    setAllThreads?.(result);
     console.log(result);
   };
+
+
 
   useEffect(() => {
 
     fetchUser();
-    fetchThreads();
-    fetchSessions();
+    fetchAllThreads();
 
   }, []);
 
-  const checkPostLike = async () => {
-    const result = await sql`SELECT * FROM post_likes WHERE user_id = ${uid} AND post_id = ${likedPostId}`;
-    setIsPostLiked?.(result.length > 0);
-  };
+  // const checkPostLike = async () => {
+  //   const result = await sql`SELECT * FROM post_likes WHERE user_id = ${uid} AND post_id = ${likedPostId}`;
+  //   setIsPostLiked?.(result.length > 0);
+  // };
 
   // useEffect(() => {
   //   checkPostLike();
@@ -114,9 +116,10 @@ export default function ForumScreen() {
 
 
         </View>
-          {threads?.map((thread: any, index: number) => (
+          {allThreads?.map((thread: any, index: number) => (
               <Post 
               id={thread?.id}
+              clerk_id={thread?.clerk_id}
               image={thread?.user_img_url}
               username={thread?.username}
               created={thread?.created_at}

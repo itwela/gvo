@@ -10,6 +10,9 @@ import { useEffect } from "react";
 import sql from '@/helpers/neonClient';
 import Post from "@/components/post";
 import Session from "@/components/session";
+import { useUser } from "@clerk/clerk-expo";
+import FastImage from "react-native-fast-image";
+import { router } from "expo-router";
 
 export default function MyProfileScreen() {
 
@@ -27,39 +30,36 @@ export default function MyProfileScreen() {
     const [gvoUser, setGvoUser] = useState<any>();
     const [threads, setThreads] = useState<any>();
     const [session, setSession] = useState<any>();
+    const {user} = useUser();
 
     const fetchUser = async () => {
       const userName = 'Twezo'
-      const result = await sql`SELECT * FROM users WHERE username = ${userName}`;
+      const result = await sql`SELECT * FROM users WHERE clerk_id = ${user?.id}`;
       setGvoUser(result);
       // console.log(result);
     };
 
     const fetchThreads = async () => {
-      const result = await sql`SELECT * FROM posts ORDER BY created_at DESC`;
+      const result = await sql`SELECT * FROM posts WHERE clerk_id = ${user?.id} ORDER BY created_at DESC`;
       setThreads(result);
-      // console.log(result);
+      console.log("thethreads", result);
     };
 
     const fetchSessions = async () => {
-      const result = await sql`SELECT * FROM bookings`;
+      const result = await sql`SELECT * FROM bookings WHERE clerk_id = ${gvoUser?.id} ORDER BY created_at DESC`;
       setSession(result);
-      console.log(result);
     };
 
     useEffect(() => {
       
-
-  
+    // if (user) {
       fetchUser();
       fetchThreads();
       fetchSessions();
-  
+    // }
+      
     }, []);
 
-    useEffect(() => {
-      fetchThreads();
-    }, [threads]);
 
     return (
         <>
@@ -82,7 +82,8 @@ export default function MyProfileScreen() {
                             </Text>
                         </View>
                         <View style={{display: "flex", width: "30%", backgroundColor: "transparent", alignItems: "flex-end",  flexDirection: "column"}}>
-                            <View style={{width: 60, height: 60, borderRadius: 100, backgroundColor: gvoColors.maize}}></View>
+                            {/* <View style={{width: 60, height: 60, borderRadius: 100, backgroundColor: gvoColors.maize}}></View> */}
+                            <FastImage source={{uri: gvoUser?.[0]?.user_img_url}} style={{width: 60, height: 60, borderRadius: 100}}/>
                         </View>
                     </View>
                 </View>
@@ -104,6 +105,7 @@ export default function MyProfileScreen() {
                         {threads?.map((thread: any) => (
                             <Post 
                             id={thread?.id}
+                            clerk_id={thread?.clerk_id}
                             image={thread?.user_img_url}
                             username={thread?.username}
                             created={thread?.created_at}
@@ -116,6 +118,14 @@ export default function MyProfileScreen() {
                             // userImg={thread?.user_img_url}
                             />
                         ))}
+
+                        {threads?.length === 0 && (
+                            <View style={{width: "100%", padding: 20}}>
+                                <Text allowFontScaling={false} style={{ fontSize: fontSizes.small, fontWeight: 'bold', color: gvoColors.dutchWhite, textAlign: "center"}}>Join the GVO community!</Text>
+                                <Text allowFontScaling={false} style={{ marginTop: 10, fontSize: fontSizes.small, fontWeight: 'bold', color: gvoColors.dutchWhite, textAlign: "center"}}>Press the yellow button below to post something!</Text>
+                            </View>
+                        )}
+
                         </View>
                     </>
                 )}
@@ -132,6 +142,16 @@ export default function MyProfileScreen() {
                                 key={session?.id}
                             />
                         ))}
+
+                        {session === undefined && (
+                            <View style={{width: "100%", padding: 20}}>
+                                <Text allowFontScaling={false} style={{ fontSize: fontSizes.small, fontWeight: 'bold', color: gvoColors.dutchWhite, textAlign: "center"}}>You haven't booked a session with us just yet!</Text>
+                            <TouchableOpacity activeOpacity={0.9} onPress={() => {router.push("/book")}} style={{marginVertical: 10, backgroundColor: gvoColors.azure, borderRadius: 10, padding: 10}}>
+                            <Text allowFontScaling={false} style={{ fontSize: fontSizes.small, textDecorationLine: "underline", fontWeight: 'bold', color: gvoColors.dutchWhite, textAlign: "center"}}>Want to book studio time? Click here.</Text>
+                        </TouchableOpacity>
+                            </View>
+                        )}
+
                     </>
                 )}
 

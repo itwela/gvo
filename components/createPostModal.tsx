@@ -5,14 +5,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import FastImage from 'react-native-fast-image';
 import { useGVOContext } from '@/constants/gvoContext';
 import sql from '@/helpers/neonClient';
+import { useUser } from '@clerk/clerk-expo';
 
 const CreatePostModal = ({ visible, onClose, userImg }: { visible: boolean; onClose: () => void; userImg: string }) => {
   
   const [showModal, setShowModal] = useState(visible);
   const scaleValue = useRef(new Animated.Value(0)).current;
   const textInputRef = useRef<TextInput>(null);
-  const {threads, setThreads} = useGVOContext();
+  const {threads, allThreads, setThreads, setAllThreads} = useGVOContext();
   const {sessions, setSessions} = useGVOContext();
+  const {gvoUserName} = useGVOContext();
+  const {user} = useUser();
+
 
   useEffect(() => {
     if (visible) {
@@ -34,14 +38,20 @@ const CreatePostModal = ({ visible, onClose, userImg }: { visible: boolean; onCl
     };
   }, []);
 
-  const fetchThreads = async () => {
+  const fetchAllThreads = async () => {
     const result = await sql`SELECT * FROM posts ORDER BY created_at DESC`;
+    setAllThreads?.(result);
+    console.log(result);
+  };
+
+  const fetchThreads = async () => {
+    const result = await sql`SELECT * FROM posts WHERE clerk_id = ${user?.id} ORDER BY created_at DESC`;
     setThreads?.(result);
     console.log(result);
   };
 
   const fetchSessions = async () => {
-    const result = await sql`SELECT * FROM bookings ORDER BY created_at DESC`;
+    const result = await sql`SELECT * FROM bookings WHERE clerk_id = ${user?.id} ORDER BY created_at DESC`;
     setSessions?.(result);
     console.log(result);
   };
@@ -50,39 +60,41 @@ const CreatePostModal = ({ visible, onClose, userImg }: { visible: boolean; onCl
   const {contentForm, setContentForm} = useGVOContext();
   const postToCommunity = async () => {
     console.log(contentForm?.content);
-    const uuid = "45531ae2-35cf-419d-b690-4a445401bcee";
-    const title = "Hello World!";
+    const uuid = user?.id;
+    const title = contentForm?.content.slice(0, 60);
     const link = "https://youtube.com/mytrack";
     const likeCount = 0;
-    const username = "Twezo";
+    const username = gvoUserName;
     const img = userImg; // Corrected to use the passed userImg prop
 
     try {
       const response = await sql`
         INSERT INTO posts 
         (
-          user_id, 
           title,
           content,
           link,
           like_count,
           username,
-          user_img_url
+          user_img_url,
+          clerk_id
         ) 
         VALUES 
         (
-          ${uuid}, 
           ${title},
           ${contentForm?.content},
           ${link},
           ${likeCount},
           ${username},
-          ${img}
+          ${img},
+          ${uuid} 
         )`;
       console.log(response);
-      onClose();
       fetchSessions();
+      fetchAllThreads();
       fetchThreads();
+      console.log("post created");
+      onClose();
     } catch (error) {
       console.log(error);
     }
@@ -233,6 +245,7 @@ const styles = StyleSheet.create({
   modalPostText: {
     fontSize: 18,
     color: gvoColors.dutchWhite,
+    width: '85%',
   },
   footer: {
     width: '100%',
