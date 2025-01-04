@@ -40,40 +40,58 @@ export default function ForumScreen() {
       setModalVisible(false);
   }
 
-  const [threads, setThreads] = useState<any>();
-  const [sessions, setSessions] = useState<any>();
+  const {threads, setThreads} = useGVOContext();
+  const {sessions, setSessions} = useGVOContext();
   const [gvoUser, setGvoUser] = useState<any>();
+
   const rooms = [
     "", "A Room", "B Room", "C Room"
   ]
   const {contentForm, setContentForm} = useGVOContext();
+  const {isPostLiked, setIsPostLiked} = useGVOContext();
+  const {likedPostId, setLikedPostId} = useGVOContext();
+  const uid = "45531ae2-35cf-419d-b690-4a445401bcee"
+
+
+  const fetchUser = async () => {
+    const userName = 'Twezo'
+    const result = await sql`SELECT * FROM users WHERE username = ${userName}`;
+    setGvoUser(result);
+    console.log(result);
+  };
+
+  const fetchThreads = async () => {
+    const result = await sql`SELECT * FROM posts ORDER BY created_at DESC`;
+    setThreads?.(result);
+    console.log(result);
+  };
+
+  const fetchSessions = async () => {
+    const result = await sql`SELECT * FROM bookings ORDER BY created_at DESC`;
+    setSessions?.(result);
+    console.log(result);
+  };
 
   useEffect(() => {
-    
-    const fetchUser = async () => {
-      const userName = 'Twezo'
-      const result = await sql`SELECT * FROM users WHERE username = ${userName}`;
-      setGvoUser(result);
-      console.log(result);
-    };
-
-    const fetchThreads = async () => {
-      const result = await sql`SELECT * FROM posts ORDER BY created_at DESC`;
-      setThreads(result);
-      console.log(result);
-    };
-
-    const fetchSessions = async () => {
-      const result = await sql`SELECT * FROM bookings ORDER BY created_at DESC`;
-      setSessions(result);
-      console.log(result);
-    };
 
     fetchUser();
     fetchThreads();
     fetchSessions();
 
   }, []);
+
+  const checkPostLike = async () => {
+    const result = await sql`SELECT * FROM post_likes WHERE user_id = ${uid} AND post_id = ${likedPostId}`;
+    setIsPostLiked?.(result.length > 0);
+  };
+
+  // useEffect(() => {
+  //   checkPostLike();
+  // }, [isPostLiked, likedPostId]);
+
+
+
+
 
 
   return (

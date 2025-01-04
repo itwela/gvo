@@ -6,21 +6,35 @@ import { gvoColors } from "@/constants/Colors";
 import { fontSizes } from "@/constants/Fontsizes";
 import sql from '@/helpers/neonClient';
 import { useEffect, useState } from "react";
+import { useGVOContext } from "@/constants/gvoContext";
 
 export default function Post({ id, image, username, created, content, likes }: { id: any, image: string, username: string, created: any, content: string, likes: number }) {
     
 
     const uid = "45531ae2-35cf-419d-b690-4a445401bcee"
-    const [isPostLiked, setIsPostLiked] = useState(false);
-    
+    const {isPostLiked, setIsPostLiked} = useGVOContext();
+    const {likedPostId, setLikedPostId} = useGVOContext();
+    const {threads, setThreads} = useGVOContext();
+
     const checkPostLike = async () => {
         const result = await sql`SELECT * FROM post_likes WHERE user_id = ${uid} AND post_id = ${id}`;
-        setIsPostLiked(result.length > 0);
+        setIsPostLiked?.(result.length > 0);
+        setLikedPostId?.(id);
+    };
+
+    const fetchThreads = async () => {
+        const result = await sql`SELECT * FROM posts ORDER BY created_at DESC`;
+        setThreads?.(result);
+        console.log(result);
     };
 
     useEffect(() => {
         checkPostLike();
     }, [isPostLiked]);
+
+    useEffect(() => {
+        fetchThreads();
+    }, [threads]);
 
     const deletePost = async () => {
         console.log("delete post");

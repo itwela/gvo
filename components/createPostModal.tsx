@@ -11,6 +11,8 @@ const CreatePostModal = ({ visible, onClose, userImg }: { visible: boolean; onCl
   const [showModal, setShowModal] = useState(visible);
   const scaleValue = useRef(new Animated.Value(0)).current;
   const textInputRef = useRef<TextInput>(null);
+  const {threads, setThreads} = useGVOContext();
+  const {sessions, setSessions} = useGVOContext();
 
   useEffect(() => {
     if (visible) {
@@ -31,6 +33,19 @@ const CreatePostModal = ({ visible, onClose, userImg }: { visible: boolean; onCl
       keyboardShowListener.remove();
     };
   }, []);
+
+  const fetchThreads = async () => {
+    const result = await sql`SELECT * FROM posts ORDER BY created_at DESC`;
+    setThreads?.(result);
+    console.log(result);
+  };
+
+  const fetchSessions = async () => {
+    const result = await sql`SELECT * FROM bookings ORDER BY created_at DESC`;
+    setSessions?.(result);
+    console.log(result);
+  };
+
 
   const {contentForm, setContentForm} = useGVOContext();
   const postToCommunity = async () => {
@@ -66,10 +81,13 @@ const CreatePostModal = ({ visible, onClose, userImg }: { visible: boolean; onCl
         )`;
       console.log(response);
       onClose();
+      fetchSessions();
+      fetchThreads();
     } catch (error) {
       console.log(error);
     }
     setContentForm?.(null);
+
   };
 
 
