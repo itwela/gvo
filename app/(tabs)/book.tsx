@@ -353,7 +353,7 @@ export default function BookScreen() {
 
   const fetchTodaysAvailibility = async () => {
     const midnightToday = new Date(today);
-    midnightToday.setUTCHours(0, 0, 0, 0);
+    midnightToday.setHours(0, 0, 0, 0); // Set to local midnight
     const formattedMidnightToday = midnightToday.toISOString().split('T')[0] + 'T00:00:00.000Z';
     console.log("midnightToday", formattedMidnightToday);
     const result = await sql`SELECT * FROM room_availability WHERE date = ${formattedMidnightToday}`;
