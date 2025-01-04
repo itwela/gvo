@@ -54,7 +54,10 @@
       "DATABASE_URL_1": "postgresql://gvostudios_owner:",
       "DATABASE_URL_2": "TIy87qDLCAdl@ep-falling-wind-a5ynbtg6.us-east-2.aws.neon.tech/gvostudios?sslmode=require",
       "GOOGLE_GENERATIVE_AI_API_KEY_1": "",
-      "GOOGLE_GENERATIVE_AI_API_KEY_2": ""
+      "GOOGLE_GENERATIVE_AI_API_KEY_2": "",
+      "eas": {
+        "projectId": "4b145f7a-45dc-498e-bed0-9f58d77ff9bf"
+      }
     }
   }
 }
