@@ -13,18 +13,32 @@ import Session from "@/components/session";
 import { useUser } from "@clerk/clerk-expo";
 import FastImage from "react-native-fast-image";
 import { router } from "expo-router";
+import { SignedIn, SignedOut } from "@clerk/clerk-expo";
+import { SettingsModal } from "@/components/settingsModal";
+import { useGVOContext } from "@/constants/gvoContext";
 
 export default function MyProfileScreen() {
 
     
     const [modalVisible, setModalVisible] = useState(false);
+    const [settingsVisible, setSettingsVisible] = useState(false);
     const [postIsSelected, setPostIsSelected] = useState(true);
     const [sessionIsSelected, setSessionIsSelected] = useState(false);
+    const { gvoUserName, setWantsToAuthenticate } = useGVOContext();
+
+
     const handleOpenModal = () => {
         setModalVisible(true);
     }
     const handleCloseModal = () => {
         setModalVisible(false);
+    }
+
+    const handleOpenSettings = () => {
+        setSettingsVisible(true);
+    }
+    const handleCloseSettings = () => {
+        setSettingsVisible(false);
     }
     
     const [gvoUser, setGvoUser] = useState<any>();
@@ -67,15 +81,19 @@ export default function MyProfileScreen() {
 
             </View>
             <SafeAreaView style={{width: "100%", position: "relative", zIndex: 2, backgroundColor: "transparent" }}>
+                
+                <SignedIn>
+
+
                 <ScrollView style={{height: "100%", width: "100%", backgroundColor: "transparent"}}>
 
                 <View style={{ width: "100%",  height: 250, backgroundColor: "transparent"}}>
                     <View style={{width: "100%", padding: 20}}>
-                    <Header/>
+                        <Header/>
                     </View>
                     <View style={{position: "relative", zIndex: 2, padding: 20, display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start"}}>
                         <View style={{display: "flex", width: "70%", flexDirection: "column"}}>
-                            <Text allowFontScaling={false} style={{color: gvoColors.dutchWhite, fontSize: fontSizes.small + 6, fontWeight: "bold"}}>{gvoUser?.[0]?.name}</Text>
+                            <Text allowFontScaling={false} style={{color: gvoColors.azure, fontSize: fontSizes.small + 6, fontWeight: "bold"}}>{gvoUser?.[0]?.name}</Text>
                             <Text allowFontScaling={false} style={{color: gvoColors.dutchWhite, fontSize: fontSizes.small,}}>{gvoUser?.[0]?.username}</Text>
                             <Text allowFontScaling={false} numberOfLines={5} style={{backgroundColor: "transparent", marginVertical: 10, width: "95%", color: gvoColors.dutchWhite, fontSize: fontSizes.small}}>
                                 {gvoUser?.[0]?.bio}
@@ -85,6 +103,11 @@ export default function MyProfileScreen() {
                             {/* <View style={{width: 60, height: 60, borderRadius: 100, backgroundColor: gvoColors.maize}}></View> */}
                             <FastImage source={{uri: gvoUser?.[0]?.user_img_url}} style={{width: 60, height: 60, borderRadius: 100}}/>
                         </View>
+                    </View>
+                    <View style={{position: "relative", width: "100%", zIndex: 2, paddingHorizontal: 20, display: "flex", flexDirection: "row", justifyContent: "flex-end", alignItems: "center"}}>
+                       <TouchableOpacity onPress={() => {handleOpenSettings()}} activeOpacity={0.9} style={{padding: 5, width: "25%", alignItems: "center", backgroundColor: gvoColors.semidark, borderRadius: 10, paddingHorizontal: 10}}>
+                            <Text allowFontScaling={false} style={{color: gvoColors.dutchWhite, fontSize: fontSizes.small, fontWeight: "bold"}}>Settings</Text>
+                       </TouchableOpacity>
                     </View>
                 </View>
 
@@ -161,11 +184,41 @@ export default function MyProfileScreen() {
                         <FontAwesome name='plus' size={25} color={gvoColors.azure} />
                     </TouchableOpacity>
                 </View>
-            <CreatePostModal 
-              visible={modalVisible}
-              onClose={handleCloseModal}
-              userImg={gvoUser?.[0]?.user_img_url}
-            /> 
+                <CreatePostModal 
+                visible={modalVisible}
+                onClose={handleCloseModal}
+                userImg={gvoUser?.[0]?.user_img_url}
+                /> 
+
+                <SettingsModal
+                visible={settingsVisible}
+                onClose={handleCloseSettings}
+                />
+
+                </SignedIn>
+
+                <SignedOut>
+
+
+                    <ScrollView style={{height: "100%", width: "100%", backgroundColor: "transparent"}}>
+
+                    <View style={{ width: "100%",  height: 250, backgroundColor: "transparent"}}>
+                        <View style={{width: "100%", padding: 20}}>
+                            <Header/>
+                        </View>
+                    </View>
+
+                    <View style={{width: "100%", padding: 20, alignItems: "center", backgroundColor: "transparent"}}>
+                        <Text allowFontScaling={false} style={{ fontSize: fontSizes.medium, fontWeight: 'bold', color: gvoColors.dutchWhite, textAlign: "center"}}>You don't have a GVO Studios account yet.</Text>
+                        <TouchableOpacity activeOpacity={0.9} onPress={() => {setWantsToAuthenticate?.(true);}} style={{marginVertical: 10, width: "70%", backgroundColor: gvoColors.azure, borderRadius: 10, padding: 10}}>
+                            <Text allowFontScaling={false} style={{ fontSize: fontSizes.small, fontWeight: 'bold', color: gvoColors.dutchWhite, textAlign: "center"}}>Get started</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    </ScrollView>   
+   
+                </SignedOut>
+
             </SafeAreaView>
 
 

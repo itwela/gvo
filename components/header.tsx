@@ -32,14 +32,6 @@ export default function Header () {
         console.error(JSON.stringify(err, null, 2))
       }
     }
-    const SignOutButton = () => {
-      
-      
-        return (
-        <>
-        </>
-        )
-    }
 
     return (
         <>
@@ -47,8 +39,8 @@ export default function Header () {
             <Text allowFontScaling={false} onPress={() => {router.push("/")}} style={{fontWeight: "bold", fontSize: fontSizes.small, color: gvoColors.dutchWhite}}>GVO</Text>
             <SignedIn>
                 {/* <SignOutButton/> */}
-                <Text allowFontScaling={false} onPress={handleSignOut} style={{fontWeight: "bold", fontSize: fontSizes.small, color: gvoColors.dutchWhite}}>Log Out</Text>
-                {/* <Text allowFontScaling={false} onPress={() => {router.push("/myprofile")}} style={{fontWeight: "bold", fontSize: fontSizes.small, color: gvoColors.dutchWhite}}>{gvoUserName}</Text> */}
+                {/* <Text allowFontScaling={false} onPress={handleSignOut} style={{fontWeight: "bold", fontSize: fontSizes.small, color: gvoColors.dutchWhite}}>Log Out</Text> */}
+                <Text allowFontScaling={false} onPress={() => {router.push("/myprofile")}} style={{fontWeight: "bold", fontSize: fontSizes.small, color: gvoColors.dutchWhite}}>{gvoUserName}</Text>
           </SignedIn>
             <SignedOut>
                 <Text allowFontScaling={false} onPress={() => {handleOpenModal()}} style={{fontWeight: "bold", fontSize: fontSizes.small, color: gvoColors.dutchWhite}}>Get Started</Text>

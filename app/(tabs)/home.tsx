@@ -16,6 +16,7 @@ import sql from '@/helpers/neonClient';
 import { useEffect } from 'react';
 import FastImage from 'react-native-fast-image';
 import { FaqModal } from '@/components/faqModal';
+import { SignedIn, SignedOut } from "@clerk/clerk-expo";
 
 export default function HomeScreen() {
   const today = new Date();

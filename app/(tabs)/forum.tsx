@@ -18,6 +18,7 @@ import CreatePostModal from '@/components/createPostModal';
 import { useGVOContext } from '@/constants/gvoContext';
 import Post from '@/components/post';
 import { useUser } from '@clerk/clerk-expo';
+import { SignedIn, SignedOut } from "@clerk/clerk-expo";
 
 export default function ForumScreen() {
   const today = new Date();
@@ -49,7 +50,7 @@ export default function ForumScreen() {
     "", "A Room", "B Room", "C Room"
   ]
   const {contentForm, setContentForm} = useGVOContext();
-  const {likedPostId, setLikedPostId} = useGVOContext();
+  const {likedPostId, setLikedPostId, wantsToAuthenticate, setWantsToAuthenticate} = useGVOContext();
   const {user} = useUser();  
   const uid = user?.id;
 
@@ -133,16 +134,26 @@ export default function ForumScreen() {
               /> 
           ))}
       </ScrollView>
-          <View style={{height: 50, alignSelf: "flex-end", position: "absolute", zIndex: 3, bottom: "12%", display: "flex", justifyContent: "center", alignItems: "center", width: "100%"}}>
-              <TouchableOpacity onPress={handleOpenModal} activeOpacity={0.9} style={{width: 50, borderRadius: 100, height: "100%", display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: gvoColors.maize}}>
-                 <FontAwesome name='plus' size={25} color={gvoColors.azure} />
-              </TouchableOpacity>
-          </View>
+          <SignedIn>
+            <View style={{height: 50, alignSelf: "flex-end", position: "absolute", zIndex: 3, bottom: "12%", display: "flex", justifyContent: "center", alignItems: "center", width: "100%"}}>
+                <TouchableOpacity onPress={handleOpenModal} activeOpacity={0.9} style={{width: 50, borderRadius: 100, height: "100%", display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: gvoColors.maize}}>
+                  <FontAwesome name='plus' size={25} color={gvoColors.azure} />
+                </TouchableOpacity>
+            </View>
+          </SignedIn>
+       
+          <SignedOut>
+            <View style={{height: 50, alignSelf: "flex-end", position: "absolute", zIndex: 3, bottom: "12%", display: "flex", justifyContent: "center", alignItems: "center", width: "100%"}}>
+                <TouchableOpacity onPress={() => setWantsToAuthenticate?.(true)} activeOpacity={0.9} style={{width: 50, borderRadius: 100, height: "100%", display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: gvoColors.maize}}>
+                  <FontAwesome name='plus' size={25} color={gvoColors.azure} />
+                </TouchableOpacity>
+            </View>
+          </SignedOut>
           <CreatePostModal 
             visible={modalVisible}
             onClose={handleCloseModal}
             userImg={gvoUser?.[0]?.user_img_url}
-          /> 
+            /> 
     </SafeAreaView>
     </>
   );

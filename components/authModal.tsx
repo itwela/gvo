@@ -49,14 +49,14 @@ export const AuthenticateModal = ({ visible, onClose }: { visible: boolean; onCl
     
           if (signInAttempt?.status === "complete") {
             await setActive?.({ session: signInAttempt.createdSessionId });
-            router.replace("/(tabs)/home");
             setForm({
-              name: '',
-              email: '',
-              password: '',
-              adminCode: '',
+                name: '',
+                email: '',
+                password: '',
+                adminCode: '',
             })
             onClose();
+            router.push("/(tabs)/home");
           } else {
             // See https://clerk.com/docs/custom-flows/error-handling for more info on error handling
             console.log(JSON.stringify(signInAttempt, null, 2));

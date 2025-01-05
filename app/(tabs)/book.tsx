@@ -14,6 +14,7 @@ import { useEffect } from 'react';
 import { fontSizes } from '@/constants/Fontsizes';
 import sql from '@/helpers/neonClient';
 import { useGVOContext } from '@/constants/gvoContext';
+import { SignedIn, SignedOut, useUser } from "@clerk/clerk-expo";
 
 const StartSelector = ({ availableTimes, roomId }: { availableTimes?: Array<{ id: any, start_time: string; end_time: string; room_id: number }>, roomId: number }) => {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
@@ -49,7 +50,7 @@ const StartSelector = ({ availableTimes, roomId }: { availableTimes?: Array<{ id
     <View style={{ width: '100%', alignItems: 'center', position: 'relative' }}>
       <TouchableOpacity onPress={() => setModalVisible(true)} style={{ paddingVertical: 10 }}>
         <Text allowFontScaling={false} style={{ fontSize: 16, fontWeight: 'bold', color: 'white' }}>
-          {selectedTime ? formatTime(selectedTime) : "Select Time"}
+          {selectedTime ? formatTime(selectedTime) : "See Times"}
         </Text>
       </TouchableOpacity>
 
@@ -128,7 +129,7 @@ const StartSelectorAdmin = (availableTimes?: any) => {
         style={{ backgroundColor: 'transparent', position: 'relative', paddingVertical: 10 }}
       >
         <Text allowFontScaling={false} style={{ fontSize: 14, color: "white", fontWeight: "bold" }}>
-          {selectedTime || "Select Time"}
+          {selectedTime || "See Times"}
         </Text>
       </TouchableOpacity>
 
@@ -167,7 +168,7 @@ const StartSelectorAdmin = (availableTimes?: any) => {
                   }}
                   style={{ padding: 10, backgroundColor: '#222' }}
                 >
-                  <Text allowFontScaling={false} style={{ fontSize: 14, color: '#fff' }}>{item.display || 'Select Time'}</Text>
+                  <Text allowFontScaling={false} style={{ fontSize: 14, color: '#fff' }}>{item.display || 'See Times'}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -231,7 +232,7 @@ const EndSelectorAdmin = () => {
         style={{ backgroundColor: 'transparent', position: 'relative', paddingVertical: 10 }}
       >
         <Text style={{ fontSize: 14, color: "white", fontWeight: "bold" }}>
-          {selectedTime || "Select Time"}
+          {selectedTime || "See Times"}
         </Text>
       </TouchableOpacity>
 
@@ -270,7 +271,7 @@ const EndSelectorAdmin = () => {
                   }}
                   style={{ padding: 10, backgroundColor: '#222' }}
                 >
-                  <Text allowFontScaling={false} style={{ fontSize: 14, color: '#fff' }}>{item.display || 'Select Time'}</Text>
+                  <Text allowFontScaling={false} style={{ fontSize: 14, color: '#fff' }}>{item.display || 'See Times'}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -299,7 +300,7 @@ export default function BookScreen() {
   const [adminMode, setAdminMode] = useState(false);
   const [defaultTimeAmount, setDefaultTimeAmount] = useState(1);
   const {adminStartTime, setAdminStartTime} = useGVOContext();
-  const {adminEndTime, setAdminEndTime} = useGVOContext();
+  const {adminEndTime, setAdminEndTime, wantsToAuthenticate, setWantsToAuthenticate} = useGVOContext();
 
   function getDaysOfMonth(start: string) {
     const days = [];
@@ -440,319 +441,564 @@ export default function BookScreen() {
     alert("The selected time is available. You can now book the session.");
   }
 
-const addAdminTime = async (startTime: string, endTime: string, startDate: string) => {
-  console.log("Raw startTime:", startTime);
-  console.log("Raw endTime:", endTime);
+  const addAdminTime = async (startTime: string, endTime: string, startDate: string) => {
+    console.log("Raw startTime:", startTime);
+    console.log("Raw endTime:", endTime);
 
-  const extractDateFromStartTime = (startTime: string): string => {
-    return startTime.split('T')[0] + 'T00:00:00.000Z'; // Extract date and set time to midnight
-  };
+    const extractDateFromStartTime = (startTime: string): string => {
+      return startTime.split('T')[0] + 'T00:00:00.000Z'; // Extract date and set time to midnight
+    };
 
-  const extractedDate = extractDateFromStartTime(startTime);
+    const extractedDate = extractDateFromStartTime(startTime);
 
-  const formatTime = (time: string): string => {
-    const [date, timePart] = time.split('T');
-    const [hour, minute] = timePart.split(':');
-    const hour12 = parseInt(hour) % 12 || 12;
-    const ampm = parseInt(hour) >= 12 ? 'PM' : 'AM';
-    return `${hour12}:${minute} ${ampm}`;
-  };
+    console.log("Extracted Date:", extractedDate);
 
-  const startFormatted = formatTime(startTime);
-  const endFormatted = formatTime(endTime);
+    const formatTime = (time: string): string => {
+      const [date, timePart] = time.split('T');
+      const [hour, minute] = timePart.split(':');
+      const hour12 = parseInt(hour) % 12 || 12;
+      const ampm = parseInt(hour) >= 12 ? 'PM' : 'AM';
+      return `${hour12}:${minute} ${ampm}`;
+    };
 
-  try {
-    const roomIndices = [1, 2, 3];
+    const startFormatted = formatTime(startTime);
+    const endFormatted = formatTime(endTime);
 
-    let timeSlots: string[] = [];
-    let current = startTime;
+    console.log("Formatted Start Time:", startFormatted);
+    console.log("Formatted End Time:", endFormatted);
 
-    let adjustedEndTime = endTime;
-    if (adjustedEndTime < current) {
-      const datePart = adjustedEndTime.split('T')[0];
-      const newDate = new Date(datePart);
-      newDate.setDate(newDate.getDate() + 1);
-      adjustedEndTime = newDate.toISOString().split('T')[0] + adjustedEndTime.slice(10);
-    }
+    try {
+      const roomIndices = [1, 2, 3];
 
-    while (current <= adjustedEndTime) {
-      timeSlots.push(current);
-      const [date, timePart] = current.split('T');
-      const [hour, minute, second] = timePart.split(':');
-      const newHour = (parseInt(hour) + 1).toString().padStart(2, '0');
-      current = `${date}T${newHour}:${minute}:${second}`;
-    }
+      let timeSlots: string[] = [];
+      let current = startTime;
 
-    console.log(`Generated ${timeSlots.length} time slots`);
-    console.log("Time Slots:", timeSlots.map(slot => formatTime(slot)));
+      let adjustedEndTime = endTime;
+      if (adjustedEndTime < current) {
+        const datePart = adjustedEndTime.split('T')[0];
+        const newDate = new Date(datePart);
+        newDate.setDate(newDate.getDate() + 1);
+        adjustedEndTime = newDate.toISOString().split('T')[0] + adjustedEndTime.slice(10);
+      }
 
-    for (const roomIndex of roomIndices) {
-      for (let i = 0; i < timeSlots.length - 1; i++) {
-        const currentSlot = timeSlots[i];
-        const nextSlot = timeSlots[i + 1];
+      while (current <= adjustedEndTime) {
+        timeSlots.push(current);
+        const [date, timePart] = current.split('T');
+        const [hour, minute, second] = timePart.split(':');
+        const newHour = (parseInt(hour) + 1).toString().padStart(2, '0');
+        current = `${date}T${newHour}:${minute}:${second}`;
+      }
 
-        const existingAvailability = await sql`
-          SELECT * FROM room_availability 
-          WHERE room_id = ${roomIndex} 
-          AND date = ${extractedDate}
-          AND start_time = ${currentSlot} 
-          AND end_time = ${nextSlot}
-        `;
+      console.log(`Generated ${timeSlots.length} time slots`);
+      console.log("Time Slots:", timeSlots.map(slot => formatTime(slot)));
 
-        console.log("Existing Availability Query Result:", existingAvailability);
+      for (const roomIndex of roomIndices) {
+        for (let i = 0; i < timeSlots.length - 1; i++) {
+          const currentSlot = timeSlots[i];
+          const nextSlot = timeSlots[i + 1];
 
-        if (existingAvailability.length === 0) {
-          console.log("date", extractedDate);
-
-          await sql`
-            INSERT INTO room_availability (room_id, start_time, end_time, is_available, date)
-            VALUES (
-              ${roomIndex}, 
-              ${currentSlot}, 
-              ${nextSlot}, 
-              TRUE, 
-              ${extractedDate}
-            )
+          const existingAvailability = await sql`
+            SELECT * FROM room_availability 
+            WHERE room_id = ${roomIndex} 
+            AND date = ${extractedDate}
+            AND start_time = ${currentSlot} 
+            AND end_time = ${nextSlot}
           `;
-          console.log("Added admin time", extractedDate, currentSlot, nextSlot);
-        } else {
-          console.log("Skipping existing time slot", currentSlot, nextSlot);
+
+          console.log("Existing Availability Query Result:", existingAvailability);
+
+          if (existingAvailability.length === 0) {
+            console.log("date", extractedDate);
+
+            await sql`
+              INSERT INTO room_availability (room_id, start_time, end_time, is_available, date)
+              VALUES (
+                ${roomIndex}, 
+                ${currentSlot}, 
+                ${nextSlot}, 
+                TRUE, 
+                ${extractedDate}
+              )
+            `;
+            console.log("Added admin time", extractedDate, currentSlot, nextSlot);
+          } else {
+            console.log("Skipping existing time slot", currentSlot, nextSlot);
+          }
         }
       }
+
+      console.log('Room availability successfully added for all rooms.');
+      fetchAvailibility();
+      fetchTodaysAvailibility();
+
+    } catch (error) {
+      console.error('Error adding room availability:', error);
     }
+  };
 
-    console.log('Room availability successfully added for all rooms.');
-    fetchAvailibility();
-    fetchTodaysAvailibility();
+  const [gvoUser, setGvoUser] = useState<any>();
+  const {user} = useUser();
 
-  } catch (error) {
-    console.error('Error adding room availability:', error);
-  }
-};
+  const fetchUser = async () => {
+    const userName = 'Twezo'
+    const result = await sql`SELECT * FROM users WHERE clerk_id = ${user?.id}`;
+    setGvoUser(result);
+    // console.log(result);
+  };
 
+  useEffect(() => {      
+      fetchUser();
+  }, []);
 
   return (
     <>
-    <View style={{width: "100%", height: "100%", backgroundColor: gvoColors.dark, position: "absolute", zIndex: 1}}>
-     </View>
-    <SafeAreaView style={{width: "100%", position: "relative", zIndex: 2, backgroundColor: "transparent" }}>
-      <ScrollView style={{height: "100%", width: "100%", backgroundColor: "transparent"}}>
-        <View style={{padding: 20, width: "100%", backgroundColor: "transparent"}}>
+    <SignedIn>
 
-          <Header/>
+      <View style={{width: "100%", height: "100%", backgroundColor: gvoColors.dark, position: "absolute", zIndex: 1}}>
+      </View>
+      <SafeAreaView style={{width: "100%", position: "relative", zIndex: 2, backgroundColor: "transparent" }}>
+        <ScrollView style={{height: "100%", width: "100%", backgroundColor: "transparent"}}>
+          <View style={{padding: 20, width: "100%", backgroundColor: "transparent"}}>
 
-          <View style={styles.titleContainer}>
-            {adminMode === false && (
-              <Text allowFontScaling={false} style={{ fontSize: fontSizes.large, fontWeight: 'bold', width: "80%" , color: gvoColors.dutchWhite}}>Studio Time.</Text>
-            )}
+            <Header/>
 
-            {adminMode === true && (
-              <>
-              <View style={{width: "100%", display: "flex", flexDirection: "column"}}>
-                <Text allowFontScaling={false} style={{ fontSize: fontSizes.large, fontWeight: 'bold', width: "90%" , color: gvoColors.dutchWhite}}>GVO Schedule.</Text>
-              </View>
-              </>
-            )}
+            <View style={styles.titleContainer}>
+              {adminMode === false && (
+                <Text allowFontScaling={false} style={{ fontSize: fontSizes.large, fontWeight: 'bold', width: "80%" , color: gvoColors.dutchWhite}}>Studio Time.</Text>
+              )}
 
-          </View>
-
-          <View style={{marginTop: 30, width: "100%"}}>
-
-              <View style={{display: "flex", marginBottom: 20, alignItems: "flex-start", flexDirection: "column", gap: 5, width: "100%"}}>
-                {daySelectedIndex === -1 && (
-                  <>
-                    <View style={{alignItems: "center", display: "flex", justifyContent: "center", flexDirection: "row", gap: 10}}>
-                      <Text  style={[{fontSize: fontSizes.small, fontWeight: "bold", color: gvoColors.dutchWhite, textAlign: "center"}]}>Admin Mode</Text>
-                      <Switch value={adminMode}  onValueChange={() => {setAdminMode(!adminMode)}}/>
-                    </View>
-                  </>
-                )}
-                <View style={{display: "flex", alignItems: "center", flexDirection: "row", gap: 3, width: "100%"}}>
-                  <View style={{width: 15, height: 15, backgroundColor: gvoColors.azure, borderRadius: 100}}/>
-                  <Text style={{color: gvoColors.dutchWhite, fontSize: fontSizes.small, fontWeight: 'bold',}}>= Studio Time Available</Text>
+              {adminMode === true && (
+                <>
+                <View style={{width: "100%", display: "flex", flexDirection: "column"}}>
+                  <Text allowFontScaling={false} style={{ fontSize: fontSizes.large, fontWeight: 'bold', width: "90%" , color: gvoColors.dutchWhite}}>GVO Schedule.</Text>
                 </View>
-              </View>
+                </>
+              )}
 
-              <View style={{display: "flex", flexDirection: "row", alignItems: "center",  marginBottom: 20, justifyContent: "space-between", width: "100%"}}>
-                
-                {startDate.getMonth() === today.getMonth() && startDate.getFullYear() === today.getFullYear() ? (
-                  <FontAwesome name="arrow-left" size={24} color={gvoColors.semidark} />
-                ) : (
-                  <TouchableOpacity onPress={() => handleArrowClick('backward')}>
-                    <FontAwesome name="arrow-left" size={24} color={gvoColors.azure} />
-                  </TouchableOpacity>
-                )}
+            </View>
 
-                <Text allowFontScaling={false} style={{color: gvoColors.dutchWhite, fontSize: fontSizes.medium, fontWeight: 'bold',}}>{months[startDate.getMonth()]} {startDate.getFullYear()}</Text>
-                
-                <TouchableOpacity onPress={() => handleArrowClick('forward')}>
-                  <FontAwesome name="arrow-right" size={24} color={gvoColors.azure} />
-                </TouchableOpacity>
-              
-              </View>
+            <View style={{marginTop: 30, width: "100%"}}>
 
-              <View style={{display: "flex" , justifyContent: "flex-start", flexDirection: "row", flexWrap: "wrap", alignSelf: "center"}} >
-
-                {daysOfMonth.map((step, index) => {          
-                  const isToday = new Date(step).toDateString() === today.toDateString(); // Check if the day is today
-                  const isPast = new Date(step) < yesterday; // Check if the day is in the past
-                  const isSelected = daySelectedIndex === index; // Check if the day is selected
-                  const hasAvailability = getAvailabilityForDay(step).length > 0; // Check if there is availability for the day
-                  
-                  return (
-                    <TouchableOpacity 
-                      activeOpacity={0.9} 
-                      onPress={() => handleDayPress(index)} 
-                      style={{
-                        backgroundColor: isSelected ? gvoColors.azure : "transparent", 
-                        position: "relative", 
-                        width: 50, 
-                        height: 50, 
-                        alignItems: "center", 
-                        justifyContent: "center", 
-                        borderRadius: 6, 
-                        padding: 4,
-                        display: daySelectedIndex === -1 || isSelected ? "flex" : "none" // Hide other days if a day is selected
-                      }} 
-                      key={index} 
-                      disabled={isPast} // Disable past days
-                      >
-                      <Text allowFontScaling={false} style={{ 
-                        fontSize: fontSizes.medium, 
-                        fontWeight: 'bold', 
-                        color: isPast ? gvoColors.semidark : (isSelected ? "white" : gvoColors.dutchWhite) 
-                      }}>
-                        {new Date(step).getDate()}
-                      </Text>
-                      {isToday && <View style={{ borderRadius: 5, backgroundColor: gvoColors.maize, padding:2, width: 55, display: "flex", alignItems: "center", position: 'absolute', top:"-40%", left: "-5%", zIndex: 10}}><Text allowFontScaling={false} style={{fontWeight: "bold", fontSize: fontSizes.small}}>Today</Text></View>}
-                      {hasAvailability && <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: gvoColors.azure, position: 'absolute', top: 5, right: 5 }} />}
-                    </TouchableOpacity>
-                  );
-                })}
-
-              </View>
-
-              <View style={{display: "flex", height: "100%", flexDirection: "column", gap: 20, paddingVertical: 20}}>
-                {/* If a day is selected, show its availability */}
-                {adminMode === false && (
-                  <>
-                  {daySelectedIndex !== -1 && (
+                <View style={{display: "flex", marginBottom: 20, alignItems: "flex-start", flexDirection: "column", gap: 5, width: "100%"}}>
+                  {daySelectedIndex === -1 && (
                     <>
-                      {getAvailabilityForDay(daysOfMonth[daySelectedIndex as number]).length === 0 ? (
-                        <Text style={[{fontSize: fontSizes.small, fontWeight: "bold", color: gvoColors.dutchWhite, textAlign: "center"}]}>No rooms available.</Text>
-                      ) : (
-                        // getAvailabilityForDay(daysOfMonth[daySelectedIndex]).map((room, roomIndex) => (
-                        rooms.slice(1, 4).map((room, roomIndex) => (
-                          <View key={roomIndex} style={styles.roomContainer}>
-                            <View style={[styles.roomHeader, {backgroundColor: room === "A Room" ? gvoColors.azure : room === "B Room" ? gvoColors.maize : room === "C Room" ? gvoColors.semidark : "transparent"}]}>
-                              <Text allowFontScaling={false} style={[styles.roomText, {color: room === "B Room" ? gvoColors.dark : gvoColors.dutchWhite}]}>{rooms[roomIndex + 1]}</Text>
-                                <Text allowFontScaling={false} style={styles.roomSubText}>
-                                  Available
-                                </Text>
-                            </View>
-                            <View style={styles.sessionContainer}>
-                              <View style={{width: "100%", display: "flex", flexDirection: "row", marginBottom: 10, justifyContent: "space-between"}}>
-                                <Text allowFontScaling={false} style={{color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small}}>Book while it's available:</Text>
-                                <View style={{display: "flex", alignItems: "center", justifyContent: "center", width: 20, height: 20, borderRadius: 50, backgroundColor: gvoColors.semidark,}}>
-                                  <Text allowFontScaling={false} style={{color: gvoColors.dark, fontWeight: "bold", fontSize: fontSizes.small}}>?</Text>
-                                </View>
+                    {gvoUser?.[0]?.role === "admin" && (
+                      <>
+                      <View style={{alignItems: "center", display: "flex", justifyContent: "center", flexDirection: "row", gap: 10}}>
+                        <Text  style={[{fontSize: fontSizes.small, fontWeight: "bold", color: gvoColors.dutchWhite, textAlign: "center"}]}>Admin Mode</Text>
+                        <Switch value={adminMode}  onValueChange={() => {setAdminMode(!adminMode)}}/>
+                      </View>
+                      </>
+                    )}
+                    </>
+                  )}
+                  <View style={{display: "flex", alignItems: "center", flexDirection: "row", gap: 3, width: "100%"}}>
+                    <View style={{width: 15, height: 15, backgroundColor: gvoColors.azure, borderRadius: 100}}/>
+                    <Text style={{color: gvoColors.dutchWhite, fontSize: fontSizes.small, fontWeight: 'bold',}}>= Studio Time Available</Text>
+                  </View>
+                </View>
+
+                <View style={{display: "flex", flexDirection: "row", alignItems: "center",  marginBottom: 20, justifyContent: "space-between", width: "100%"}}>
+                  
+                  {startDate.getMonth() === today.getMonth() && startDate.getFullYear() === today.getFullYear() ? (
+                    <FontAwesome name="arrow-left" size={24} color={gvoColors.semidark} />
+                  ) : (
+                    <TouchableOpacity onPress={() => handleArrowClick('backward')}>
+                      <FontAwesome name="arrow-left" size={24} color={gvoColors.azure} />
+                    </TouchableOpacity>
+                  )}
+
+                  <Text allowFontScaling={false} style={{color: gvoColors.dutchWhite, fontSize: fontSizes.medium, fontWeight: 'bold',}}>{months[startDate.getMonth()]} {startDate.getFullYear()}</Text>
+                  
+                  <TouchableOpacity onPress={() => handleArrowClick('forward')}>
+                    <FontAwesome name="arrow-right" size={24} color={gvoColors.azure} />
+                  </TouchableOpacity>
+                
+                </View>
+
+                <View style={{display: "flex" , justifyContent: "flex-start", flexDirection: "row", flexWrap: "wrap", alignSelf: "center"}} >
+
+                  {daysOfMonth.map((step, index) => {          
+                    const isToday = new Date(step).toDateString() === today.toDateString(); // Check if the day is today
+                    const isPast = new Date(step) < yesterday; // Check if the day is in the past
+                    const isSelected = daySelectedIndex === index; // Check if the day is selected
+                    const hasAvailability = getAvailabilityForDay(step).length > 0; // Check if there is availability for the day
+                    
+                    return (
+                      <TouchableOpacity 
+                        activeOpacity={0.9} 
+                        onPress={() => handleDayPress(index)} 
+                        style={{
+                          backgroundColor: isSelected ? gvoColors.azure : "transparent", 
+                          position: "relative", 
+                          width: 50, 
+                          height: 50, 
+                          alignItems: "center", 
+                          justifyContent: "center", 
+                          borderRadius: 6, 
+                          padding: 4,
+                          display: daySelectedIndex === -1 || isSelected ? "flex" : "none" // Hide other days if a day is selected
+                        }} 
+                        key={index} 
+                        disabled={isPast} // Disable past days
+                        >
+                        <Text allowFontScaling={false} style={{ 
+                          fontSize: fontSizes.medium, 
+                          fontWeight: 'bold', 
+                          color: isPast ? gvoColors.semidark : (isSelected ? "white" : gvoColors.dutchWhite) 
+                        }}>
+                          {new Date(step).getDate()}
+                        </Text>
+                        {isToday && <View style={{ borderRadius: 5, backgroundColor: gvoColors.maize, padding:2, width: 55, display: "flex", alignItems: "center", position: 'absolute', top:"-40%", left: "-5%", zIndex: 10}}><Text allowFontScaling={false} style={{fontWeight: "bold", fontSize: fontSizes.small}}>Today</Text></View>}
+                        {hasAvailability && <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: gvoColors.azure, position: 'absolute', top: 5, right: 5 }} />}
+                      </TouchableOpacity>
+                    );
+                  })}
+
+                </View>
+
+                <View style={{display: "flex", height: "100%", flexDirection: "column", gap: 20, paddingVertical: 20}}>
+                  {/* If a day is selected, show its availability */}
+                  {adminMode === false && (
+                    <>
+                    {daySelectedIndex !== -1 && (
+                      <>
+                        {getAvailabilityForDay(daysOfMonth[daySelectedIndex as number]).length === 0 ? (
+                          <Text style={[{fontSize: fontSizes.small, fontWeight: "bold", color: gvoColors.dutchWhite, textAlign: "center"}]}>No rooms available.</Text>
+                        ) : (
+                          // getAvailabilityForDay(daysOfMonth[daySelectedIndex]).map((room, roomIndex) => (
+                          rooms.slice(1, 4).map((room, roomIndex) => (
+                            <View key={roomIndex} style={styles.roomContainer}>
+                              <View style={[styles.roomHeader, {backgroundColor: room === "A Room" ? gvoColors.azure : room === "B Room" ? gvoColors.maize : room === "C Room" ? gvoColors.semidark : "transparent"}]}>
+                                <Text allowFontScaling={false} style={[styles.roomText, {color: room === "B Room" ? gvoColors.dark : gvoColors.dutchWhite}]}>{rooms[roomIndex + 1]}</Text>
+                                  <Text allowFontScaling={false} style={styles.roomSubText}>
+                                    Available
+                                  </Text>
                               </View>
-                              <View style={{width: "100%", display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
-                                <View style={{width: "75%", display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center"}}>
-                                  <View style={{display: "flex", flexDirection: "column", gap: 5}}>
-                                    <Text allowFontScaling={false} style={{color: gvoColors.semidark, fontWeight: "bold", fontSize: fontSizes.small}}>Starts:</Text>
-                                    <StartSelector availableTimes={todaysAvailability} roomId={roomIndex + 1}/>
+                              <View style={styles.sessionContainer}>
+                                <View style={{width: "100%", display: "flex", flexDirection: "row", marginBottom: 10, justifyContent: "space-between"}}>
+                                  <Text allowFontScaling={false} style={{color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small}}>Book while it's available:</Text>
+                                  <View style={{display: "flex", alignItems: "center", justifyContent: "center", width: 20, height: 20, borderRadius: 50, backgroundColor: gvoColors.semidark,}}>
+                                    <Text allowFontScaling={false} style={{color: gvoColors.dark, fontWeight: "bold", fontSize: fontSizes.small}}>?</Text>
                                   </View>
-                                  <View style={{display: "flex", flexDirection: "column", gap: 5}}>
-                                    <Text allowFontScaling={false} style={{color: gvoColors.semidark, fontWeight: "bold", fontSize: fontSizes.small}}>I want to book:</Text>
-                                    <View style={{display: "flex", flexDirection: "row", gap: 6, alignItems: "center"}}>
-                                     <FontAwesome onPress={() => handleMinusTime(roomIndex)} name="minus" size={fontSizes.small - 3} style={{backgroundColor: gvoColors.maize, borderRadius: 50, padding: 2}} color={gvoColors.dark} />
-                                        <View style={{display: "flex", alignItems: 'center', flexDirection: "row", gap: 0}}>
-                                        <Text allowFontScaling={false} style={{ color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.medium - 6 }}>
-                                          {cardTimes[roomIndex] || defaultTimeAmount} hour
-                                        </Text>
-                                        {cardTimes[roomIndex] > 1 && (
-                                          <Text allowFontScaling={false} style={{ color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small}}>(s)</Text>                                     
-                                        )}
+                                </View>
+                                <View style={{width: "100%", display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
+                                  <View style={{width: "75%", display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center"}}>
+                                    <View style={{display: "flex", flexDirection: "column", gap: 5}}>
+                                      <Text allowFontScaling={false} style={{color: gvoColors.semidark, fontWeight: "bold", fontSize: fontSizes.small}}>Starts:</Text>
+                                      <StartSelector availableTimes={todaysAvailability} roomId={roomIndex + 1}/>
+                                    </View>
+                                    <View style={{display: "flex", flexDirection: "column", gap: 5}}>
+                                      <Text allowFontScaling={false} style={{color: gvoColors.semidark, fontWeight: "bold", fontSize: fontSizes.small}}>I want to book:</Text>
+                                      <View style={{display: "flex", flexDirection: "row", gap: 6, alignItems: "center"}}>
+                                      <FontAwesome onPress={() => handleMinusTime(roomIndex)} name="minus" size={fontSizes.small - 3} style={{backgroundColor: gvoColors.maize, borderRadius: 50, padding: 2}} color={gvoColors.dark} />
+                                          <View style={{display: "flex", alignItems: 'center', flexDirection: "row", gap: 0}}>
+                                          <Text allowFontScaling={false} style={{ color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.medium - 6 }}>
+                                            {cardTimes[roomIndex] || defaultTimeAmount} hour
+                                          </Text>
+                                          {cardTimes[roomIndex] > 1 && (
+                                            <Text allowFontScaling={false} style={{ color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small}}>(s)</Text>                                     
+                                          )}
+                                        </View>
+                                        <FontAwesome onPress={() => handlePlusTime(roomIndex)} name="plus" size={fontSizes.small - 3} style={{backgroundColor: gvoColors.maize, borderRadius: 50, padding: 2}} color={gvoColors.dark} />
                                       </View>
-                                       <FontAwesome onPress={() => handlePlusTime(roomIndex)} name="plus" size={fontSizes.small - 3} style={{backgroundColor: gvoColors.maize, borderRadius: 50, padding: 2}} color={gvoColors.dark} />
                                     </View>
                                   </View>
-                                </View>
-                                <View style={{display: "flex", alignItems: "center", justifyContent: "center"}}>
-                                  <TouchableOpacity onPress={() => bookTime(userStartTime, cardTimes[roomIndex] || defaultTimeAmount, roomIndex + 1, userStartTime)} style={{display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: gvoColors.azure, padding: 10, borderRadius: 6}}>
-                                    <Text allowFontScaling={false} style={{color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small}}>Book</Text>
-                                  </TouchableOpacity>
+                                  <View style={{display: "flex", alignItems: "center", justifyContent: "center"}}>
+                                    <TouchableOpacity onPress={() => bookTime(userStartTime, cardTimes[roomIndex] || defaultTimeAmount, roomIndex + 1, userStartTime)} style={{display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: gvoColors.azure, padding: 10, borderRadius: 6}}>
+                                      <Text allowFontScaling={false} style={{color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small}}>Book</Text>
+                                    </TouchableOpacity>
+                                  </View>
                                 </View>
                               </View>
                             </View>
+                            ))
+                          // ))
+                        )}
+                      </>
+                    )}
+                    </>
+                  )}
+
+                  {adminMode === true && (
+                    <>
+                      {daySelectedIndex !== -1 && (
+                        <>
+                        {/* a room */}
+                          <View style={styles.roomContainer}>
+                              <View style={[styles.roomHeader, {backgroundColor:  gvoColors.azure}]}>
+                                <Text style={[styles.roomText, {color: gvoColors.dutchWhite}]}>Schedule</Text>
+                                  <Text style={styles.roomSubTextZero}>
+                                    Open
+                                  </Text>
+                              </View>
+                              <View style={styles.sessionContainer}>
+                                <View style={{width: "100%", display: "flex", flexDirection: "row", marginBottom: 10, justifyContent: "space-between"}}>
+                                  <Text allowFontScaling={false} style={{color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small}}>Set GVO's session availability here:</Text>
+                                  <View style={{display: "flex", alignItems: "center", justifyContent: "center", width: 20, height: 20, borderRadius: 50, backgroundColor: gvoColors.semidark,}}>
+                                    <Text allowFontScaling={false} style={{color: gvoColors.dark, fontWeight: "bold", fontSize: fontSizes.small}}>?</Text>
+                                  </View>
+                                </View>
+                                <View style={{width: "100%", display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
+                                  <View style={{width: "70%", display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center"}}>
+                                    <View style={{display: "flex", flexDirection: "column", gap: 5}}>
+                                      <Text allowFontScaling={false} style={{color: gvoColors.semidark, fontWeight: "bold", fontSize: fontSizes.small}}>Start Time</Text>
+                                      <StartSelectorAdmin />
+                                      </View>
+                                    <View style={{display: "flex", flexDirection: "column", gap: 5}}>
+                                      <Text allowFontScaling={false} style={{color: gvoColors.semidark, fontWeight: "bold", fontSize: fontSizes.small}}>End Time</Text>
+                                      <EndSelectorAdmin />
+                                      </View>
+                                  </View>
+                                  <View style={{display: "flex", alignItems: "center", justifyContent: "center"}}>
+                                    <TouchableOpacity onPress={() => addAdminTime(adminStartTime, adminEndTime, adminStartTime)} style={{display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: gvoColors.azure, padding: 10, borderRadius: 6}}>
+                                      <Text allowFontScaling={false} style={{color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small}}>Book</Text>
+                                    </TouchableOpacity>
+                                  </View>
+                                </View>
+                              </View>
                           </View>
-                          ))
-                        // ))
+                          </>
                       )}
                     </>
                   )}
-                  </>
-                )}
 
-                {adminMode === true && (
-                  <>
-                    {daySelectedIndex !== -1 && (
-                      <>
-                      {/* a room */}
-                        <View style={styles.roomContainer}>
-                            <View style={[styles.roomHeader, {backgroundColor:  gvoColors.azure}]}>
-                              <Text style={[styles.roomText, {color: gvoColors.dutchWhite}]}>Schedule</Text>
-                                <Text style={styles.roomSubTextZero}>
-                                  Open
-                                </Text>
-                            </View>
-                            <View style={styles.sessionContainer}>
-                              <View style={{width: "100%", display: "flex", flexDirection: "row", marginBottom: 10, justifyContent: "space-between"}}>
-                                <Text allowFontScaling={false} style={{color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small}}>Set GVO's session availability here:</Text>
-                                <View style={{display: "flex", alignItems: "center", justifyContent: "center", width: 20, height: 20, borderRadius: 50, backgroundColor: gvoColors.semidark,}}>
-                                  <Text allowFontScaling={false} style={{color: gvoColors.dark, fontWeight: "bold", fontSize: fontSizes.small}}>?</Text>
-                                </View>
-                              </View>
-                              <View style={{width: "100%", display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
-                                <View style={{width: "70%", display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center"}}>
-                                  <View style={{display: "flex", flexDirection: "column", gap: 5}}>
-                                    <Text allowFontScaling={false} style={{color: gvoColors.semidark, fontWeight: "bold", fontSize: fontSizes.small}}>Start Time</Text>
-                                    <StartSelectorAdmin />
-                                    </View>
-                                  <View style={{display: "flex", flexDirection: "column", gap: 5}}>
-                                    <Text allowFontScaling={false} style={{color: gvoColors.semidark, fontWeight: "bold", fontSize: fontSizes.small}}>End Time</Text>
-                                    <EndSelectorAdmin />
-                                    </View>
-                                </View>
-                                <View style={{display: "flex", alignItems: "center", justifyContent: "center"}}>
-                                  <TouchableOpacity onPress={() => addAdminTime(adminStartTime, adminEndTime, adminStartTime)} style={{display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: gvoColors.azure, padding: 10, borderRadius: 6}}>
-                                    <Text allowFontScaling={false} style={{color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small}}>Book</Text>
-                                  </TouchableOpacity>
-                                </View>
-                              </View>
-                            </View>
-                        </View>
-                        </>
-                    )}
-                  </>
-                )}
+                  {daySelectedIndex === -1 && (
+                    <>
+                    <View style={{width: "100%", alignItems: "center", display: "flex", justifyContent: "center", flexDirection: "column", gap: 10}}>
+                      <Text style={[{fontSize: fontSizes.small, fontWeight: "bold", color: gvoColors.dutchWhite, textAlign: "center"}]} >Select a day to see availability.</Text>
+                    </View>
+                    </>
+                  )}
 
-                {daySelectedIndex === -1 && (
-                  <>
-                  <View style={{width: "100%", alignItems: "center", display: "flex", justifyContent: "center", flexDirection: "column", gap: 10}}>
-                    <Text style={[{fontSize: fontSizes.small, fontWeight: "bold", color: gvoColors.dutchWhite, textAlign: "center"}]} >Select a day to see availability.</Text>
-                  </View>
-                  </>
-                )}
+                </View>
 
-              </View>
+            </View>
 
           </View>
+        </ScrollView>
+      </SafeAreaView>
 
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+    </SignedIn>
+
+
+    <SignedOut>
+
+      <View style={{width: "100%", height: "100%", backgroundColor: gvoColors.dark, position: "absolute", zIndex: 1}}>
+      </View>
+      <SafeAreaView style={{width: "100%", position: "relative", zIndex: 2, backgroundColor: "transparent" }}>
+        <ScrollView style={{height: "100%", width: "100%", backgroundColor: "transparent"}}>
+          <View style={{padding: 20, width: "100%", backgroundColor: "transparent"}}>
+
+            <Header/>
+
+            <View style={styles.titleContainer}>
+              <Text allowFontScaling={false} style={{ fontSize: fontSizes.large, fontWeight: 'bold', width: "80%" , color: gvoColors.dutchWhite}}>Studio Time.</Text>
+            </View>
+
+            <View style={{marginTop: 30, width: "100%"}}>
+
+                <View style={{display: "flex", marginBottom: 20, alignItems: "flex-start", flexDirection: "column", gap: 5, width: "100%"}}>
+                  {daySelectedIndex === -1 && (
+                    <>
+                    {gvoUser?.role === "admin" && (
+                      <>
+                      <View style={{alignItems: "center", display: "flex", justifyContent: "center", flexDirection: "row", gap: 10}}>
+                        <Text  style={[{fontSize: fontSizes.small, fontWeight: "bold", color: gvoColors.dutchWhite, textAlign: "center"}]}>Admin Mode</Text>
+                        <Switch value={adminMode}  onValueChange={() => {setAdminMode(!adminMode)}}/>
+                      </View>
+                      </>
+                    )}
+                    </>
+                  )}
+                  <View style={{display: "flex", alignItems: "center", flexDirection: "row", gap: 3, width: "100%"}}>
+                    <View style={{width: 15, height: 15, backgroundColor: gvoColors.azure, borderRadius: 100}}/>
+                    <Text style={{color: gvoColors.dutchWhite, fontSize: fontSizes.small, fontWeight: 'bold',}}>= Studio Time Available</Text>
+                  </View>
+                </View>
+
+                <View style={{display: "flex", flexDirection: "row", alignItems: "center",  marginBottom: 20, justifyContent: "space-between", width: "100%"}}>
+                  
+                  {startDate.getMonth() === today.getMonth() && startDate.getFullYear() === today.getFullYear() ? (
+                    <FontAwesome name="arrow-left" size={24} color={gvoColors.semidark} />
+                  ) : (
+                    <TouchableOpacity onPress={() => handleArrowClick('backward')}>
+                      <FontAwesome name="arrow-left" size={24} color={gvoColors.azure} />
+                    </TouchableOpacity>
+                  )}
+
+                  <Text allowFontScaling={false} style={{color: gvoColors.dutchWhite, fontSize: fontSizes.medium, fontWeight: 'bold',}}>{months[startDate.getMonth()]} {startDate.getFullYear()}</Text>
+                  
+                  <TouchableOpacity onPress={() => handleArrowClick('forward')}>
+                    <FontAwesome name="arrow-right" size={24} color={gvoColors.azure} />
+                  </TouchableOpacity>
+                
+                </View>
+
+                <View style={{display: "flex" , justifyContent: "flex-start", flexDirection: "row", flexWrap: "wrap", alignSelf: "center"}} >
+
+                  {daysOfMonth.map((step, index) => {          
+                    const isToday = new Date(step).toDateString() === today.toDateString(); // Check if the day is today
+                    const isPast = new Date(step) < yesterday; // Check if the day is in the past
+                    const isSelected = daySelectedIndex === index; // Check if the day is selected
+                    const hasAvailability = getAvailabilityForDay(step).length > 0; // Check if there is availability for the day
+                    
+                    return (
+                      <TouchableOpacity 
+                        activeOpacity={0.9} 
+                        onPress={() => handleDayPress(index)} 
+                        style={{
+                          backgroundColor: isSelected ? gvoColors.azure : "transparent", 
+                          position: "relative", 
+                          width: 50, 
+                          height: 50, 
+                          alignItems: "center", 
+                          justifyContent: "center", 
+                          borderRadius: 6, 
+                          padding: 4,
+                          display: daySelectedIndex === -1 || isSelected ? "flex" : "none" // Hide other days if a day is selected
+                        }} 
+                        key={index} 
+                        disabled={isPast} // Disable past days
+                        >
+                        <Text allowFontScaling={false} style={{ 
+                          fontSize: fontSizes.medium, 
+                          fontWeight: 'bold', 
+                          color: isPast ? gvoColors.semidark : (isSelected ? "white" : gvoColors.dutchWhite) 
+                        }}>
+                          {new Date(step).getDate()}
+                        </Text>
+                        {isToday && <View style={{ borderRadius: 5, backgroundColor: gvoColors.maize, padding:2, width: 55, display: "flex", alignItems: "center", position: 'absolute', top:"-40%", left: "-5%", zIndex: 10}}><Text allowFontScaling={false} style={{fontWeight: "bold", fontSize: fontSizes.small}}>Today</Text></View>}
+                        {hasAvailability && <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: gvoColors.azure, position: 'absolute', top: 5, right: 5 }} />}
+                      </TouchableOpacity>
+                    );
+                  })}
+
+                </View>
+
+                <View style={{display: "flex", height: "100%", flexDirection: "column", gap: 20, paddingVertical: 20}}>
+                  {/* If a day is selected, show its availability */}
+                  {adminMode === false && (
+                    <>
+                    {daySelectedIndex !== -1 && (
+                      <>
+                        {getAvailabilityForDay(daysOfMonth[daySelectedIndex as number]).length === 0 ? (
+                          <Text style={[{fontSize: fontSizes.small, fontWeight: "bold", color: gvoColors.dutchWhite, textAlign: "center"}]}>No rooms available.</Text>
+                        ) : (
+                          // getAvailabilityForDay(daysOfMonth[daySelectedIndex]).map((room, roomIndex) => (
+                          rooms.slice(1, 4).map((room, roomIndex) => (
+                            <View key={roomIndex} style={styles.roomContainer}>
+                              <View style={[styles.roomHeader, {backgroundColor: room === "A Room" ? gvoColors.azure : room === "B Room" ? gvoColors.maize : room === "C Room" ? gvoColors.semidark : "transparent"}]}>
+                                <Text allowFontScaling={false} style={[styles.roomText, {color: room === "B Room" ? gvoColors.dark : gvoColors.dutchWhite}]}>{rooms[roomIndex + 1]}</Text>
+                                  <Text allowFontScaling={false} style={styles.roomSubText}>
+                                    Available
+                                  </Text>
+                              </View>
+                              <View style={styles.sessionContainer}>
+                                <View style={{width: "100%", display: "flex", flexDirection: "row", marginBottom: 10, justifyContent: "space-between"}}>
+                                  <Text allowFontScaling={false} style={{color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small}}>Book while it's available:</Text>
+                                  <View style={{display: "flex", alignItems: "center", justifyContent: "center", width: 20, height: 20, borderRadius: 50, backgroundColor: gvoColors.semidark,}}>
+                                    <Text allowFontScaling={false} style={{color: gvoColors.dark, fontWeight: "bold", fontSize: fontSizes.small}}>?</Text>
+                                  </View>
+                                </View>
+                                <View style={{width: "100%", display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
+                                  <View style={{width: "75%", display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center"}}>
+                                    <View style={{display: "flex", flexDirection: "column", gap: 5}}>
+                                      <Text allowFontScaling={false} style={{color: gvoColors.semidark, fontWeight: "bold", fontSize: fontSizes.small}}>Starts:</Text>
+                                      <StartSelector availableTimes={todaysAvailability} roomId={roomIndex + 1}/>
+                                    </View>
+                                    <View style={{display: "flex", flexDirection: "column", gap: 5}}>
+                                      <Text allowFontScaling={false} style={{color: gvoColors.semidark, fontWeight: "bold", fontSize: fontSizes.small}}>I want to book:</Text>
+                                      <View style={{display: "flex", flexDirection: "row", gap: 6, alignItems: "center"}}>
+                                      <FontAwesome onPress={() => handleMinusTime(roomIndex)} name="minus" size={fontSizes.small - 3} style={{backgroundColor: gvoColors.maize, borderRadius: 50, padding: 2}} color={gvoColors.dark} />
+                                          <View style={{display: "flex", alignItems: 'center', flexDirection: "row", gap: 0}}>
+                                          <Text allowFontScaling={false} style={{ color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.medium - 6 }}>
+                                            {cardTimes[roomIndex] || defaultTimeAmount} hour
+                                          </Text>
+                                          {cardTimes[roomIndex] > 1 && (
+                                            <Text allowFontScaling={false} style={{ color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small}}>(s)</Text>                                     
+                                          )}
+                                        </View>
+                                        <FontAwesome onPress={() => handlePlusTime(roomIndex)} name="plus" size={fontSizes.small - 3} style={{backgroundColor: gvoColors.maize, borderRadius: 50, padding: 2}} color={gvoColors.dark} />
+                                      </View>
+                                    </View>
+                                  </View>
+                                  <View style={{display: "flex", alignItems: "center", justifyContent: "center"}}>
+                                    <TouchableOpacity onPress={() => setWantsToAuthenticate?.(true)} style={{display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: gvoColors.azure, padding: 10, borderRadius: 6}}>
+                                      <Text allowFontScaling={false} style={{color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small}}>Sign in</Text>
+                                    </TouchableOpacity>
+                                  </View>
+                                </View>
+                              </View>
+                            </View>
+                            ))
+                          // ))
+                        )}
+                      </>
+                    )}
+                    </>
+                  )}
+
+                  {adminMode === true && (
+                    <>
+                      {daySelectedIndex !== -1 && (
+                        <>
+                        {/* a room */}
+                          <View style={styles.roomContainer}>
+                              <View style={[styles.roomHeader, {backgroundColor:  gvoColors.azure}]}>
+                                <Text style={[styles.roomText, {color: gvoColors.dutchWhite}]}>Schedule</Text>
+                                  <Text style={styles.roomSubTextZero}>
+                                    Open
+                                  </Text>
+                              </View>
+                              <View style={styles.sessionContainer}>
+                                <View style={{width: "100%", display: "flex", flexDirection: "row", marginBottom: 10, justifyContent: "space-between"}}>
+                                  <Text allowFontScaling={false} style={{color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small}}>Set GVO's session availability here:</Text>
+                                  <View style={{display: "flex", alignItems: "center", justifyContent: "center", width: 20, height: 20, borderRadius: 50, backgroundColor: gvoColors.semidark,}}>
+                                    <Text allowFontScaling={false} style={{color: gvoColors.dark, fontWeight: "bold", fontSize: fontSizes.small}}>?</Text>
+                                  </View>
+                                </View>
+                                <View style={{width: "100%", display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
+                                  <View style={{width: "70%", display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center"}}>
+                                    <View style={{display: "flex", flexDirection: "column", gap: 5}}>
+                                      <Text allowFontScaling={false} style={{color: gvoColors.semidark, fontWeight: "bold", fontSize: fontSizes.small}}>Start Time</Text>
+                                      <StartSelectorAdmin />
+                                      </View>
+                                    <View style={{display: "flex", flexDirection: "column", gap: 5}}>
+                                      <Text allowFontScaling={false} style={{color: gvoColors.semidark, fontWeight: "bold", fontSize: fontSizes.small}}>End Time</Text>
+                                      <EndSelectorAdmin />
+                                      </View>
+                                  </View>
+                                  <View style={{display: "flex", alignItems: "center", justifyContent: "center"}}>
+                                    <TouchableOpacity onPress={() => addAdminTime(adminStartTime, adminEndTime, adminStartTime)} style={{display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: gvoColors.azure, padding: 10, borderRadius: 6}}>
+                                      <Text allowFontScaling={false} style={{color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small}}>Book</Text>
+                                    </TouchableOpacity>
+                                  </View>
+                                </View>
+                              </View>
+                          </View>
+                          </>
+                      )}
+                    </>
+                  )}
+
+                  {daySelectedIndex === -1 && (
+                    <>
+                    <View style={{width: "100%", alignItems: "center", display: "flex", justifyContent: "center", flexDirection: "column", gap: 10}}>
+                      <Text style={[{fontSize: fontSizes.small, fontWeight: "bold", color: gvoColors.dutchWhite, textAlign: "center"}]} >Select a day to see availability.</Text>
+                    </View>
+                    </>
+                  )}
+
+                </View>
+
+            </View>
+
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+
+    </SignedOut>
     </>
   );
 }
