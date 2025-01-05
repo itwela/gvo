@@ -24,7 +24,7 @@ export default function MyProfileScreen() {
     const [settingsVisible, setSettingsVisible] = useState(false);
     const [postIsSelected, setPostIsSelected] = useState(true);
     const [sessionIsSelected, setSessionIsSelected] = useState(false);
-    const { gvoUserName, setWantsToAuthenticate } = useGVOContext();
+    const { gvoUserName, setWantsToAuthenticate, handleLike, handleUnlike, deletePost, threads, allThreads, setThreads, setAllThreads} = useGVOContext();
 
 
     const handleOpenModal = () => {
@@ -42,7 +42,7 @@ export default function MyProfileScreen() {
     }
     
     const [gvoUser, setGvoUser] = useState<any>();
-    const [threads, setThreads] = useState<any>();
+    // const [threads, setThreads] = useState<any>();
     const [session, setSession] = useState<any>();
     const {user} = useUser();
 
@@ -55,7 +55,7 @@ export default function MyProfileScreen() {
 
     const fetchThreads = async () => {
       const result = await sql`SELECT * FROM posts WHERE clerk_id = ${user?.id} ORDER BY created_at DESC`;
-      setThreads(result);
+      setThreads?.(result);
       console.log("thethreads", result);
     };
 
@@ -135,6 +135,9 @@ export default function MyProfileScreen() {
                             content={thread?.content}
                             likes={thread?.like_count}
                             key={thread?.id}
+                            handleLike={handleLike}
+                            handleUnlike={handleUnlike}
+                            deletePost={deletePost}
                             // key={thread?.id}
                             // id={thread?.id}
                             // title={thread?.title}

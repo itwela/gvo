@@ -49,7 +49,7 @@ export default function ForumScreen() {
   const rooms = [
     "", "A Room", "B Room", "C Room"
   ]
-  const {contentForm, setContentForm} = useGVOContext();
+  const {contentForm, setContentForm, handleLike, handleUnlike, deletePost} = useGVOContext();
   const {likedPostId, setLikedPostId, wantsToAuthenticate, setWantsToAuthenticate} = useGVOContext();
   const {user} = useUser();  
   const uid = user?.id;
@@ -127,6 +127,9 @@ export default function ForumScreen() {
               content={thread?.content}
               likes={thread?.like_count}
               key={thread?.id}
+              handleLike={handleLike}
+              handleUnlike={handleUnlike}
+              deletePost={deletePost}
               // key={thread?.id}
               // id={thread?.id}
               // title={thread?.title}

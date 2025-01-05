@@ -8,6 +8,7 @@ import sql from "@/helpers/neonClient";
 import { useEffect, useState } from "react";
 import { useGVOContext } from "@/constants/gvoContext";
 import { useUser } from "@clerk/clerk-expo";
+import { SignedIn, SignedOut } from "@clerk/clerk-expo";
 
 export default function Post({
   id,
@@ -17,6 +18,9 @@ export default function Post({
   created,
   content,
   likes: initialLikes,
+  handleLike,
+  handleUnlike,
+  deletePost
 }: {
   id: any;
   clerk_id: any;
@@ -25,61 +29,40 @@ export default function Post({
   created: any;
   content: string;
   likes: number;
+  handleLike: any;
+  handleUnlike: any;
+  deletePost: any;
 }) {
   const { user } = useUser();
   const uid = user?.id;
-  const { likedPosts, setLikedPosts } = useGVOContext();
+  const { likedPosts, setLikedPosts, setWantsToAuthenticate } = useGVOContext();
 
   const [likes, setLikes] = useState(initialLikes);
 
-  const checkPostLike = async () => {
-    const result = await sql`SELECT * FROM post_likes WHERE clerk_id = ${uid} AND post_id = ${id}`;
-    setLikedPosts?.((prev: any) => ({
-      ...prev,
-      [id]: result.length > 0,
-    }));
-  };
+  const logposts =  () => {
+    console.log(likedPosts)
+  }
 
-  useEffect(() => {
-    checkPostLike();
-  }, [id]);
+  // const checkPostLike = async () => {
+  //   const result = await sql`SELECT * FROM post_likes WHERE clerk_id = ${uid} AND post_id = ${id}`;
+  //   setLikedPosts?.((prev: any) => ({
+  //     ...prev,
+  //     [id]: result.length > 0,
+  //   }));
+  // };
 
-  const likePost = async (userId: any, postId: any) => {
-    try {
-      await sql`UPDATE posts SET like_count = like_count + 1 WHERE id = ${postId}`;
-      await sql`INSERT INTO post_likes (post_id, clerk_id) VALUES (${postId}, ${userId})`;
-      setLikedPosts?.((prev: any) => ({
-        ...prev,
-        [postId]: true,
-      }));
-      setLikes((prev) => prev + 1); // Increment local likes count
-    } catch (error) {
-      console.error("Error liking post:", error);
-    }
-  };
+  // useEffect(() => {
+  //   checkPostLike();
+  // }, [id]);
 
-  const unlikePost = async (userId: any, postId: any) => {
-    try {
-      await sql`UPDATE posts SET like_count = like_count - 1 WHERE id = ${postId}`;
-      await sql`DELETE FROM post_likes WHERE clerk_id = ${userId} AND post_id = ${postId}`;
-      setLikedPosts?.((prev: any) => ({
-        ...prev,
-        [postId]: false,
-      }));
-      setLikes((prev) => prev - 1); // Decrement local likes count
-    } catch (error) {
-      console.error("Error unliking post:", error);
-    }
-  };
-
-  const deletePost = async () => {
-    try {
-      await sql`DELETE FROM posts WHERE id = ${id}`;
-      console.log("Post deleted");
-    } catch (error) {
-      console.error("Error deleting post:", error);
-    }
-  };
+  // const deletePost = async () => {
+  //   try {
+  //     await sql`DELETE FROM posts WHERE id = ${id}`;
+  //     console.log("Post deleted");
+  //   } catch (error) {
+  //     console.error("Error deleting post:", error);
+  //   }
+  // };
 
   return (
     <View style={styles.thread}>
@@ -113,7 +96,7 @@ export default function Post({
             }}
           >
             <View style={{ display: "flex", flexDirection: "row", gap: 5 }}>
-              <Text style={styles.personName}>{username}</Text>
+              <Text onPress={logposts} style={styles.personName}>{username}</Text>
               <Text style={styles.time}>
                 {(() => {
                   const createdAt = new Date(created);
@@ -141,7 +124,7 @@ export default function Post({
             {clerk_id === uid && (
               <TouchableOpacity
                 onPress={() => {
-                  deletePost();
+                  deletePost(id);
                 }}
                 activeOpacity={0.9}
               >
@@ -162,33 +145,45 @@ export default function Post({
               paddingVertical: 10,
             }}
           >
-            <TouchableOpacity
-              onPress={() =>
-                likedPosts?.[id]
-                  ? unlikePost(uid, id)
-                  : likePost(uid, id)
-              }
-              activeOpacity={0.9}
-            >
-              <FontAwesome
-                name={likedPosts?.[id] ? "heart" : "heart-o"}
-                size={15}
-                color={
-                  likedPosts?.[id]
-                    ? gvoColors.azure
-                    : gvoColors.dutchWhite
+            <SignedIn>
+
+              <TouchableOpacity
+                onPress={() => likedPosts?.[id]?.liked === true ? handleUnlike(uid, id) : handleLike(uid, id)
                 }
-                style={{ marginRight: 5 }}
-              />
-            </TouchableOpacity>
+                activeOpacity={0.9}
+                >
+                <FontAwesome
+                  name={likedPosts?.[id]?.liked === true ? "heart" : "heart-o"}
+                  size={15}
+                  color={ likedPosts?.[id]?.liked === true ? gvoColors.azure : gvoColors.dutchWhite }
+                  style={{ marginRight: 5 }}
+                  />
+              </TouchableOpacity>
+
+            </SignedIn>
+
+            <SignedOut>
+              <TouchableOpacity
+                onPress={() => {
+                  setWantsToAuthenticate?.(true);
+                }}
+                activeOpacity={0.9}
+              >
+                <FontAwesome
+                  name="heart-o"
+                  size={15}
+                  color={gvoColors.dutchWhite}
+                  style={{ marginRight: 5 }}
+                />
+              </TouchableOpacity>
+            </SignedOut>
+
             <Text
               style={{
-                color: likedPosts?.[id]
-                  ? gvoColors.azure
-                  : gvoColors.dutchWhite,
+                color: likedPosts?.[id]?.liked === true ? gvoColors.azure : gvoColors.dutchWhite,
               }}
             >
-              {likes}
+              {likedPosts?.[id]?.like_count || 0}
             </Text>
           </View>
         </View>
