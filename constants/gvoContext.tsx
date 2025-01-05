@@ -32,6 +32,8 @@ interface GVOContextType {
     setLikedPosts?: (value: any) => void;
     likedPostId?: any;
     setLikedPostId?: (value: any) => void;
+    gvoUser?: any;
+    setGvoUser?: (value: any) => void;
     gvoUserName?: string;
     setGvoUserName?: (value: string) => void;
     handleLike?: (userId: string, postId: string) => Promise<void>;
@@ -57,6 +59,7 @@ export const GVOProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const [allThreads, setAllThreads] = useState<any>([]);
     const [likedPosts, setLikedPosts] = useState<any>();
     const [likedPostId, setLikedPostId] = useState<any>();
+    const [gvoUser, setGvoUser] = useState<any>();
     const [gvoUserName, setGvoUserName] = useState<string>('');
     const handleLike = async (userid: string, postId: string) => {
         console.log("Starting context handleLike function");
@@ -155,6 +158,8 @@ export const GVOProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             setLikedPosts,
             likedPostId,
             setLikedPostId,
+            gvoUser,
+            setGvoUser,
             gvoUserName,
             setGvoUserName,
             handleLike,

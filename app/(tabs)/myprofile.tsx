@@ -24,7 +24,7 @@ export default function MyProfileScreen() {
     const [settingsVisible, setSettingsVisible] = useState(false);
     const [postIsSelected, setPostIsSelected] = useState(true);
     const [sessionIsSelected, setSessionIsSelected] = useState(false);
-    const { gvoUserName, setWantsToAuthenticate, handleLike, handleUnlike, deletePost, threads, allThreads, setThreads, setAllThreads} = useGVOContext();
+    const { gvoUserName, gvoUser, setGvoUser, sessions, setSessions, setWantsToAuthenticate, handleLike, handleUnlike, deletePost, threads, allThreads, setThreads, setAllThreads} = useGVOContext();
 
 
     const handleOpenModal = () => {
@@ -41,15 +41,15 @@ export default function MyProfileScreen() {
         setSettingsVisible(false);
     }
     
-    const [gvoUser, setGvoUser] = useState<any>();
+    // const [gvoUser, setGvoUser] = useState<any>();
     // const [threads, setThreads] = useState<any>();
-    const [session, setSession] = useState<any>();
+    // const [session, setSession] = useState<any>();
     const {user} = useUser();
 
     const fetchUser = async () => {
       const userName = 'Twezo'
       const result = await sql`SELECT * FROM users WHERE clerk_id = ${user?.id}`;
-      setGvoUser(result);
+      setGvoUser?.(result);
       // console.log(result);
     };
 
@@ -61,7 +61,7 @@ export default function MyProfileScreen() {
 
     const fetchSessions = async () => {
       const result = await sql`SELECT * FROM bookings WHERE clerk_id = ${gvoUser?.id} ORDER BY created_at DESC`;
-      setSession(result);
+      setSessions?.(result);
     };
 
     useEffect(() => {
@@ -158,7 +158,7 @@ export default function MyProfileScreen() {
 
                 {sessionIsSelected === true && (
                     <>
-                        {session?.map((session: any, index: number) => (
+                        {sessions?.map((session: any, index: number) => (
                             <Session
                                 status={session?.status}
                                 theDate={new Date(session?.start_time).toLocaleString([], { year: 'numeric', month: "short", day: 'numeric' })}
@@ -169,7 +169,7 @@ export default function MyProfileScreen() {
                             />
                         ))}
 
-                        {session === undefined && (
+                        {sessions === undefined && (
                             <View style={{width: "100%", padding: 20}}>
                                 <Text allowFontScaling={false} style={{ fontSize: fontSizes.small, fontWeight: 'bold', color: gvoColors.dutchWhite, textAlign: "center"}}>You haven't booked a session with us just yet!</Text>
                             <TouchableOpacity activeOpacity={0.9} onPress={() => {router.push("/book")}} style={{marginVertical: 10, backgroundColor: gvoColors.azure, borderRadius: 10, padding: 10}}>

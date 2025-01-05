@@ -17,13 +17,29 @@ export const AuthenticateModal = ({ visible, onClose }: { visible: boolean; onCl
 
     const { signIn, setActive: setActiveSignIn, isLoaded: isLoadedSignIn } = useSignIn();
     const { signUp, setActive: setActiveSignUp, isLoaded: isLoadedSignUp } = useSignUp();
-    const { wantsToLogIn, wantsToSignUp, setWantsToLogIn, setWantsToSignUp, setWantsToAuthenticate } = useGVOContext();
+    const { wantsToLogIn, wantsToSignUp, setWantsToLogIn, setWantsToSignUp, setWantsToAuthenticate, gvoUser, setGvoUser, threads, setThreads, sessions, setSessions } = useGVOContext();
 
     const isLoaded = wantsToSignUp ? isLoadedSignUp : isLoadedSignIn;
     const setActive = wantsToSignUp ? setActiveSignUp : setActiveSignIn;
     const router = useRouter()
     const [showSuccessModal, setShowSuccessModal] = useState(false)
-
+    const fetchUser = async (userId: string) => {
+        const userName = 'Twezo'
+        const result = await sql`SELECT * FROM users WHERE clerk_id = ${userId}`;
+        setGvoUser?.(result);
+        // console.log(result);
+      };
+  
+      const fetchThreads = async (userId: string) => {
+        const result = await sql`SELECT * FROM posts WHERE clerk_id = ${userId} ORDER BY created_at DESC`;
+        setThreads?.(result);
+        console.log("thethreads", result);
+      };
+  
+      const fetchSessions = async (userId: string) => {
+        const result = await sql`SELECT * FROM bookings WHERE clerk_id = ${userId} ORDER BY created_at DESC`;
+        setSessions?.(result);
+      };
 
     const [form, setForm] = useState({
         name: '',
@@ -55,6 +71,9 @@ export const AuthenticateModal = ({ visible, onClose }: { visible: boolean; onCl
                 password: '',
                 adminCode: '',
             })
+            fetchUser(signInAttempt.id as string);
+            fetchThreads(signInAttempt.id as string);
+            fetchSessions(signInAttempt.id as string);
             onClose();
             router.push("/(tabs)/home");
           } else {
@@ -139,6 +158,10 @@ export const AuthenticateModal = ({ visible, onClose }: { visible: boolean; onCl
 
         console.log("verified", verification.state)
 
+        fetchUser(completeSignUp.createdUserId as string);
+        fetchThreads(completeSignUp.createdUserId as string);
+        fetchSessions(completeSignUp.createdUserId as string);
+
         } else {
         setVerification({
             ...verification,
@@ -160,6 +183,7 @@ export const AuthenticateModal = ({ visible, onClose }: { visible: boolean; onCl
     const handleCompleteSignUp = async () => {
         setForm({name: "", email: "", password: "", adminCode: ""});
         setShowSuccessModal(false);
+
         // router.replace("/(tabs)/myprofile")
         // onClose();
         // setWantsToAuthenticate?.(false);
@@ -395,6 +419,7 @@ export const AuthenticateModal = ({ visible, onClose }: { visible: boolean; onCl
                                 <TouchableOpacity style={buttonStyle.mainButton} 
                                 onPress={() => {
                                     handleCompleteSignUp();
+
                                 }}>
                                     <Text style={[buttonStyle.mainButtonText, {color: gvoColors.dutchWhite}]}>Close</Text>
                                 </TouchableOpacity>
