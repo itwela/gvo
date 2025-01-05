@@ -43,7 +43,7 @@ export default function HomeScreen() {
           <Header/>
 
           <View style={styles.titleContainer}>
-            <Text allowFontScaling={false} style={{ fontSize: fontSizes.large, color: gvoColors.dutchWhite, fontWeight: 'bold', width: "80%" }}>Welcome to GVO Studios.</Text>
+            <Text allowFontScaling={false} style={{ fontSize: fontSizes.large - 6, color: gvoColors.dutchWhite, fontWeight: 'bold', width: "80%" }}>Welcome to GVO Studios.</Text>
           </View>
           <TouchableOpacity activeOpacity={0.9} onPress={() => {router.push("/book")}} style={{marginVertical: 10, backgroundColor: gvoColors.azure, borderRadius: 10, padding: 10}}>
             <Text allowFontScaling={false} style={{ fontSize: fontSizes.small, textDecorationLine: "underline", fontWeight: 'bold', color: gvoColors.dutchWhite, textAlign: "center"}}>Want to book studio time? Click here.</Text>

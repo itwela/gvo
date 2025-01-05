@@ -564,13 +564,13 @@ export default function BookScreen() {
 
             <View style={styles.titleContainer}>
               {adminMode === false && (
-                <Text allowFontScaling={false} style={{ fontSize: fontSizes.large, fontWeight: 'bold', width: "80%" , color: gvoColors.dutchWhite}}>Studio Time.</Text>
+                <Text allowFontScaling={false} style={{ fontSize: fontSizes.large - 6, fontWeight: 'bold', width: "80%" , color: gvoColors.dutchWhite}}>Studio Time.</Text>
               )}
 
               {adminMode === true && (
                 <>
                 <View style={{width: "100%", display: "flex", flexDirection: "column"}}>
-                  <Text allowFontScaling={false} style={{ fontSize: fontSizes.large, fontWeight: 'bold', width: "90%" , color: gvoColors.dutchWhite}}>GVO Schedule.</Text>
+                  <Text allowFontScaling={false} style={{ fontSize: fontSizes.large - 6, fontWeight: 'bold', width: "90%" , color: gvoColors.dutchWhite}}>GVO Schedule.</Text>
                 </View>
                 </>
               )}
@@ -793,7 +793,7 @@ export default function BookScreen() {
             <Header/>
 
             <View style={styles.titleContainer}>
-              <Text allowFontScaling={false} style={{ fontSize: fontSizes.large, fontWeight: 'bold', width: "80%" , color: gvoColors.dutchWhite}}>Studio Time.</Text>
+              <Text allowFontScaling={false} style={{ fontSize: fontSizes.large - 6, fontWeight: 'bold', width: "80%" , color: gvoColors.dutchWhite}}>Studio Time.</Text>
             </View>
 
             <View style={{marginTop: 30, width: "100%"}}>
