@@ -23,12 +23,18 @@ export const AuthenticateModal = ({ visible, onClose }: { visible: boolean; onCl
     const setActive = wantsToSignUp ? setActiveSignUp : setActiveSignIn;
     const router = useRouter()
     const [showSuccessModal, setShowSuccessModal] = useState(false)
-    const fetchUser = async (userId: string) => {
-        const userName = 'Twezo'
-        const result = await sql`SELECT * FROM users WHERE clerk_id = ${userId}`;
+    const fetchUser = async (email: string) => {
+        const result = await sql`SELECT * FROM users WHERE email = ${email}`;
+        setGvoUser?.(result);
+        return result?.[0]?.clerk_id
+        // console.log(result);
+    };
+
+    const fetchUserWIthId = async (id: string) => {
+        const result = await sql`SELECT * FROM users WHERE clerk_id = ${id}`;
         setGvoUser?.(result);
         // console.log(result);
-      };
+    };
   
       const fetchThreads = async (userId: string) => {
         const result = await sql`SELECT * FROM posts WHERE clerk_id = ${userId} ORDER BY created_at DESC`;
@@ -71,9 +77,9 @@ export const AuthenticateModal = ({ visible, onClose }: { visible: boolean; onCl
                 password: '',
                 adminCode: '',
             })
-            fetchUser(signInAttempt.id as string);
-            fetchThreads(signInAttempt.id as string);
-            fetchSessions(signInAttempt.id as string);
+            const userid = await fetchUser(form.email as string);
+            fetchThreads(userid as string);
+            fetchSessions(userid as string);
             onClose();
             router.push("/(tabs)/home");
           } else {
@@ -158,7 +164,7 @@ export const AuthenticateModal = ({ visible, onClose }: { visible: boolean; onCl
 
         console.log("verified", verification.state)
 
-        fetchUser(completeSignUp.createdUserId as string);
+        fetchUserWIthId(completeSignUp.createdUserId as string);
         fetchThreads(completeSignUp.createdUserId as string);
         fetchSessions(completeSignUp.createdUserId as string);
 
