@@ -1,4 +1,4 @@
-import { Image, ScrollView, StyleSheet, View,  Platform, Text, TouchableOpacity } from 'react-native';
+import { Image, ScrollView, StyleSheet, RefreshControl, View,  Platform, Text, TouchableOpacity } from 'react-native';
 import { useState } from 'react';
 
 import { HelloWave } from '@/components/HelloWave';
@@ -31,13 +31,24 @@ export default function HomeScreen() {
       setModalVisible(false);
   }
 
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = () => {
+      console.log("Refreshing...");
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
+    console.log("Refreshed!");
+  };
+
   return (
     <>
     <View style={{width: "100%", height: "100%", backgroundColor: gvoColors.dark, position: "absolute", zIndex: 1}}>
 
     </View>
     <SafeAreaView style={{width: "100%", position: "relative", zIndex: 2, backgroundColor: "transparent" }}>
-      <ScrollView style={{height: "100%", width: "100%", backgroundColor: "transparent"}}>
+      <ScrollView refreshControl={<RefreshControl tintColor={gvoColors.azure} colors={[gvoColors.azure]} refreshing={refreshing} onRefresh={handleRefresh} />} style={{height: "100%", width: "100%", backgroundColor: "transparent"}}>
         <View style={{padding: 20, width: "100%", backgroundColor: "transparent"}}>
 
           <Header/>

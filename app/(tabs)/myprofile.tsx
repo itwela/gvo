@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from "react-native";
 import { gvoColors } from "@/constants/Colors";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { fontSizes } from "@/constants/Fontsizes";
@@ -74,6 +74,20 @@ export default function MyProfileScreen() {
       
     }, []);
 
+    const [refreshing, setRefreshing] = useState(false);
+
+    const handleRefresh = () => {
+        console.log("Refreshing...");
+      setRefreshing(true);
+      fetchUser();
+      fetchThreads();
+      fetchSessions();
+      setTimeout(() => {
+        setRefreshing(false);
+      }, 1000);
+      console.log("Refreshed!");
+    };
+
 
     return (
         <>
@@ -85,7 +99,7 @@ export default function MyProfileScreen() {
                 <SignedIn>
 
 
-                <ScrollView style={{height: "100%", width: "100%", backgroundColor: "transparent"}}>
+                <ScrollView refreshControl={<RefreshControl colors={[gvoColors.azure]} tintColor={gvoColors.azure} refreshing={refreshing} onRefresh={() => {handleRefresh()}} />} style={{height: "100%", width: "100%", backgroundColor: "transparent"}}>
 
                 <View style={{ width: "100%",  height: 250, backgroundColor: "transparent"}}>
                     <View style={{width: "100%", padding: 20}}>
@@ -203,7 +217,7 @@ export default function MyProfileScreen() {
                 <SignedOut>
 
 
-                    <ScrollView style={{height: "100%", width: "100%", backgroundColor: "transparent"}}>
+                    <ScrollView refreshControl={<RefreshControl refreshing={false} onRefresh={() => {}} />} style={{height: "100%", width: "100%", backgroundColor: "transparent"}}>
 
                     <View style={{ width: "100%",  height: 250, backgroundColor: "transparent"}}>
                         <View style={{width: "100%", padding: 20}}>

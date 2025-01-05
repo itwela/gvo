@@ -1,4 +1,4 @@
-import { Image, ScrollView, StyleSheet, View, Platform, Text, TouchableOpacity } from 'react-native';
+import { Image, ScrollView, StyleSheet, RefreshControl, View, Platform, Text, TouchableOpacity } from 'react-native';
 import { useEffect, useState } from 'react';
 
 import { HelloWave } from '@/components/HelloWave';
@@ -74,6 +74,18 @@ export default function ForumScreen() {
     console.log(result);
   };
 
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = () => {
+      console.log("Refreshing...");
+    setRefreshing(true);
+    fetchUser();
+    fetchThreads();
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
+    console.log("Refreshed!");
+  };
 
 
   useEffect(() => {
@@ -103,7 +115,7 @@ export default function ForumScreen() {
 
     </View>
     <SafeAreaView style={{width: "100%", position: "relative", zIndex: 2, height: "100%", backgroundColor: "transparent" }}>
-      <ScrollView style={{height: "100%", width: "100%", position: "relative", backgroundColor: "transparent"}}>
+      <ScrollView refreshControl={<RefreshControl tintColor={gvoColors.azure} colors={[gvoColors.azure]} refreshing={refreshing} onRefresh={handleRefresh} />} style={{height: "100%", width: "100%", position: "relative", backgroundColor: "transparent"}}>
         <View style={{padding: 20, width: "100%", backgroundColor: "transparent"}}>
 
           <Header/>
