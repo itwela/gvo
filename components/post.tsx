@@ -43,6 +43,23 @@ export default function Post({
     console.log(likedPosts)
   }
 
+  useEffect(() => {
+    const findInitialLikedPosts = async () => {
+      const result = await sql`SELECT * FROM post_likes WHERE post_id = ${id} AND clerk_id = ${uid}`;
+      setLikedPosts?.((prev: any) => {
+        if (!prev) prev = {};
+        return {
+          ...prev,
+          [id]: { liked: result.length > 0, like_count: initialLikes }
+        };
+      });
+      console.log(likedPosts);
+    };
+
+    findInitialLikedPosts();
+  }, [id, uid]);
+
+
   // const checkPostLike = async () => {
   //   const result = await sql`SELECT * FROM post_likes WHERE clerk_id = ${uid} AND post_id = ${id}`;
   //   setLikedPosts?.((prev: any) => ({
@@ -124,7 +141,7 @@ export default function Post({
             {clerk_id === uid && (
               <TouchableOpacity
                 onPress={() => {
-                  deletePost(id);
+                  deletePost(uid, id);
                 }}
                 activeOpacity={0.9}
               >
@@ -183,7 +200,7 @@ export default function Post({
                 color: likedPosts?.[id]?.liked === true ? gvoColors.azure : gvoColors.dutchWhite,
               }}
             >
-              {likedPosts?.[id]?.like_count || 0}
+              {likedPosts?.[id]?.like_count || initialLikes}
             </Text>
           </View>
         </View>

@@ -38,7 +38,7 @@ interface GVOContextType {
     setGvoUserName?: (value: string) => void;
     handleLike?: (userId: string, postId: string) => Promise<void>;
     handleUnlike?: (userId: string, postId: string) => Promise<void>;
-    deletePost?: (postId: string) => Promise<void>;
+    deletePost?: (uid: string, postId: string) => Promise<void>;
 }
 
 const GVOContext = createContext<GVOContextType | null>(null);
@@ -77,6 +77,9 @@ export const GVOProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             )
         );
 
+        
+        // Additional logic from file_context_0
+        await sql`INSERT INTO post_likes (post_id, clerk_id) VALUES (${postId}, ${userid})`;
         setLikedPosts((prev: any) => {
             if (!prev) prev = {};
             return {
@@ -84,12 +87,22 @@ export const GVOProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 [postId]: { liked: true, like_count: (prev[postId]?.like_count || 0) + 1 }
             };
         });
+        // setLikedPosts?.((prev: any) => {
+        //     if (!prev) prev = {};
+        //     return {
+        //         ...prev,
+        //         [postId]: { liked: result.length > 0, like_count: result.length }
+        //     };
+        // });
 
         console.log("Finished context handleLike function");
     };
     const handleUnlike = async (userid: string, postId: string) => {
         console.log("Starting context handleUnlike function");
         await sql`UPDATE posts SET like_count = like_count - 1 WHERE id = ${postId} AND clerk_id = ${userid}`;
+
+        // Remove the like entry from post_likes table
+        await sql`DELETE FROM post_likes WHERE post_id = ${postId}`;
 
         setThreads((prev: any) =>
             prev.map((thread: any) =>
@@ -110,13 +123,15 @@ export const GVOProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 [postId]: { liked: false, like_count: currentLikeCount - 1 }
             };
         });
-        
+
         console.log("Finished context handleUnlike function");
     };
-    const deletePost = async (id: string) => {
+    const deletePost = async (id: string, uid: string) => {
         console.log("Starting context deletePost function");
         console.log(id);
         try {
+            // Remove the like entry from post_likes table
+            await sql`DELETE FROM post_likes WHERE post_id = ${id} AND clerk_id = ${uid}`;
             await sql`DELETE FROM posts WHERE id = ${id}`;
         } catch (error) {
             console.error("Error deleting post:", error);

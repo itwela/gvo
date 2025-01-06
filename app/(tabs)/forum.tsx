@@ -71,7 +71,7 @@ export default function ForumScreen() {
   const fetchAllThreads = async () => {
     const result = await sql`SELECT * FROM posts ORDER BY created_at DESC`;
     setAllThreads?.(result);
-    console.log(result);
+    console.log(result?.[0]?.like_count);
   };
 
   const [refreshing, setRefreshing] = useState(false);
