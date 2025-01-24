@@ -18,7 +18,6 @@ import { SettingsModal } from "@/components/settingsModal";
 import { useGVOContext } from "@/constants/gvoContext";
 
 export default function MyProfileScreen() {
-
     
     const [modalVisible, setModalVisible] = useState(false);
     const [settingsVisible, setSettingsVisible] = useState(false);
@@ -40,10 +39,7 @@ export default function MyProfileScreen() {
     const handleCloseSettings = () => {
         setSettingsVisible(false);
     }
-    
-    // const [gvoUser, setGvoUser] = useState<any>();
-    // const [threads, setThreads] = useState<any>();
-    // const [session, setSession] = useState<any>();
+
     const {user} = useUser();
 
     const fetchUser = async () => {
@@ -56,12 +52,16 @@ export default function MyProfileScreen() {
     const fetchThreads = async () => {
       const result = await sql`SELECT * FROM posts WHERE clerk_id = ${user?.id} ORDER BY created_at DESC`;
       setThreads?.(result);
-      console.log("thethreads", result);
     };
 
     const fetchSessions = async () => {
-      const result = await sql`SELECT * FROM bookings WHERE clerk_id = ${gvoUser?.id} ORDER BY created_at DESC`;
-      setSessions?.(result);
+      console.log("gvoUser?.id", user?.id)
+      try {
+          const result = await sql`SELECT * FROM bookings WHERE clerk_id = ${user?.id} ORDER BY id DESC`;
+          setSessions?.(result);
+      } catch (error) {
+        console.log(error);
+      }
     };
 
     useEffect(() => {
@@ -152,10 +152,6 @@ export default function MyProfileScreen() {
                             handleLike={handleLike}
                             handleUnlike={handleUnlike}
                             deletePost={deletePost}
-                            // key={thread?.id}
-                            // id={thread?.id}
-                            // title={thread?.title}
-                            // userImg={thread?.user_img_url}
                             />
                         ))}
 
@@ -175,9 +171,9 @@ export default function MyProfileScreen() {
                         {sessions?.map((session: any, index: number) => (
                             <Session
                                 status={session?.status}
-                                theDate={new Date(session?.start_time).toLocaleString([], { year: 'numeric', month: "short", day: 'numeric' })}
-                                startTime={new Date(session?.start_time).toLocaleString([], { hour: '2-digit', minute: '2-digit' })}
-                                endTime={new Date(session?.end_time).toLocaleString([], { hour: '2-digit', minute: '2-digit' })}
+                                theDate={new Date(session?.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                startTime={session?.start_time}
+                                endTime={session?.end_time}
                                 roomid={session?.room_id}
                                 key={session?.id}
                             />

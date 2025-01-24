@@ -1,4 +1,4 @@
-import { Image, ScrollView, Modal, RefreshControl, FlatList, StyleSheet, View, Platform, Text, TouchableOpacity, Switch } from 'react-native';
+import { Image, ScrollView, Modal, RefreshControl, FlatList, StyleSheet, View, Platform, Text, TouchableOpacity, Switch, Pressable } from 'react-native';
 import { useState } from 'react';
 
 import { HelloWave } from '@/components/HelloWave';
@@ -15,10 +15,13 @@ import { fontSizes } from '@/constants/Fontsizes';
 import sql from '@/helpers/neonClient';
 import { useGVOContext } from '@/constants/gvoContext';
 import { SignedIn, SignedOut, useUser } from "@clerk/clerk-expo";
+import BookingModal from '@/components/bookingModal';
+import { KeyboardAvoidingView, Button } from "react-native";
 
 const StartSelector = ({ availableTimes, roomId }: { availableTimes?: Array<{ id: any, start_time: string; end_time: string; room_id: number }>, roomId: number }) => {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const {userStartTime, setUserStartTime} = useGVOContext();
   const [selectedTimeLocal, setSelectedTimeLocal] = useState<string | null>(null);
 
   if (!availableTimes) {
@@ -28,29 +31,20 @@ const StartSelector = ({ availableTimes, roomId }: { availableTimes?: Array<{ id
 
   // Filter available times by the room index
   availableTimes = availableTimes.filter(time => time.room_id === roomId);
-  console.log("availableTimescfiltered", availableTimes);
 
   const handleTime = (item: any) => {
     setSelectedTimeLocal(item.start_time);
     setSelectedTime(item.start_time);
+    setUserStartTime?.(item.start_time);
     setModalVisible(false);
   };
 
-  const formatTime = (isoString: string) => {
-    const date = new Date(isoString);
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    const formattedHours = hours % 12 || 12;
-    const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
-    return `${formattedHours}:${formattedMinutes} ${ampm}`;
-  };
 
   return (
     <View style={{ width: '100%', alignItems: 'center', position: 'relative' }}>
       <TouchableOpacity onPress={() => setModalVisible(true)} style={{ paddingVertical: 10 }}>
         <Text allowFontScaling={false} style={{ fontSize: 16, fontWeight: 'bold', color: 'white' }}>
-          {selectedTime ? formatTime(selectedTime) : "See Times"}
+          {selectedTime ? selectedTime : "See Times"}
         </Text>
       </TouchableOpacity>
 
@@ -67,7 +61,7 @@ const StartSelector = ({ availableTimes, roomId }: { availableTimes?: Array<{ id
                   style={{ padding: 10, backgroundColor: 'gray' }}
                 >
                   <Text allowFontScaling={false} style={{ fontSize: 16, color: 'white' }}>
-                    {formatTime(item.start_time)}
+                    {item.start_time}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -110,17 +104,39 @@ const StartSelectorAdmin = (availableTimes?: any) => {
     return slots;
   };
 
-  const handleTime = (item: { local: string; display: string }) => {
-    setSelectedTime(item.display);
-    setAdminStartTime?.(item.local);
-    console.log("adminStartTime (Local):", item.local);
-    console.log("Displayed Time (Local):", item.display);
+  const handleTime = (item: any) => {
+    setSelectedTime(item);
+    setAdminStartTime?.(item);
   };
 
-  const timeSlots = generateTimeSlots();
+  // const timeSlots = generateTimeSlots();
+  const timeSlots = [
+    '12:00 AM',
+    '1:00 AM',
+    '2:00 AM',
+    '3:00 AM',
+    '4:00 AM',
+    '5:00 AM',
+    '6:00 AM',
+    '7:00 AM',
+    '8:00 AM',
+    '9:00 AM',
+    '10:00 AM',
+    '11:00 AM',
+    '12:00 PM',
+    '1:00 PM',
+    '2:00 PM',
+    '3:00 PM',
+    '4:00 PM',
+    '5:00 PM',
+    '6:00 PM',
+    '7:00 PM',
+    '8:00 PM',
+    '9:00 PM',
+    '10:00 PM',
+    '11:00 PM',
+  ]
 
-  // Sort the time slots by local time
-  timeSlots.sort((a, b) => new Date(a.local).getTime() - new Date(b.local).getTime());
 
   return (
     <View style={{ width: '100%', alignItems: 'center', position: 'relative' }}>
@@ -158,7 +174,7 @@ const StartSelectorAdmin = (availableTimes?: any) => {
           >
             <FlatList
               data={timeSlots}
-              keyExtractor={(item) => item.local}
+              keyExtractor={(item) => item.toString()}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   activeOpacity={0.9}
@@ -168,7 +184,7 @@ const StartSelectorAdmin = (availableTimes?: any) => {
                   }}
                   style={{ padding: 10, backgroundColor: '#222' }}
                 >
-                  <Text allowFontScaling={false} style={{ fontSize: 14, color: '#fff' }}>{item.display || 'See Times'}</Text>
+                  <Text allowFontScaling={false} style={{ fontSize: 14, color: '#fff' }}>{item}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -190,40 +206,37 @@ const EndSelectorAdmin = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const { adminEndTime, setAdminEndTime } = useGVOContext();
 
-  const generateTimeSlots = () => {
-    const slots = [];
-    const now = new Date();
-    const midnightLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-
-    for (let i = 0; i < 24; i++) {
-      const localTime = new Date(midnightLocal.getTime() + i * 60 * 60 * 1000);
-
-      const localTimeString = localTime.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true,
-      });
-
-      slots.push({
-        local: localTime.toISOString(),
-        display: localTimeString,
-      });
-    }
-
-    return slots;
+  const handleTime = (item: any) => {
+    setSelectedTime(item);
+    setAdminEndTime?.(item);
   };
 
-  const handleTime = (item: { local: string; display: string }) => {
-    setSelectedTime(item.display);
-    setAdminEndTime?.(item.local);
-    console.log("adminEndTime (Local):", item.local);
-    console.log("Displayed Time (Local):", item.display);
-  };
-
-  const timeSlots = generateTimeSlots();
-
-  // Sort the time slots by local time
-  timeSlots.sort((a, b) => new Date(a.local).getTime() - new Date(b.local).getTime());
+  const timeSlots = [
+    '12:00 AM',
+    '1:00 AM',
+    '2:00 AM',
+    '3:00 AM',
+    '4:00 AM',
+    '5:00 AM',
+    '6:00 AM',
+    '7:00 AM',
+    '8:00 AM',
+    '9:00 AM',
+    '10:00 AM',
+    '11:00 AM',
+    '12:00 PM',
+    '1:00 PM',
+    '2:00 PM',
+    '3:00 PM',
+    '4:00 PM',
+    '5:00 PM',
+    '6:00 PM',
+    '7:00 PM',
+    '8:00 PM',
+    '9:00 PM',
+    '10:00 PM',
+    '11:00 PM',
+  ]
 
   return (
     <View style={{ width: '100%', alignItems: 'center', position: 'relative' }}>
@@ -261,7 +274,7 @@ const EndSelectorAdmin = () => {
           >
             <FlatList
               data={timeSlots}
-              keyExtractor={(item) => item.local}
+              keyExtractor={(item) => item.toString()}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   activeOpacity={0.9}
@@ -271,7 +284,7 @@ const EndSelectorAdmin = () => {
                   }}
                   style={{ padding: 10, backgroundColor: '#222' }}
                 >
-                  <Text allowFontScaling={false} style={{ fontSize: 14, color: '#fff' }}>{item.display || 'See Times'}</Text>
+                  <Text allowFontScaling={false} style={{ fontSize: 14, color: '#fff' }}>{item}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -294,6 +307,7 @@ export default function BookScreen() {
   yesterday.setDate(new Date(today).getDate() - 1);
 
   const [startDate, setStartDate] = useState(today);
+  const [selectedDay, setSelectedDay] = useState(today);
   const {daySelectedIndex, setDaySelectedIndex} = useGVOContext();
   const [availability, setAvailability] = useState<any[]>([]);
   const [todaysAvailability, setTodaysAvailability] = useState<any[]>([]);
@@ -337,8 +351,10 @@ export default function BookScreen() {
   const handleDayPress = (index: number) => {
     if (daySelectedIndex === index) {
       setDaySelectedIndex?.(-1);
+      setSelectedDay(new Date(daysOfMonth[index]));
     } else {
       setDaySelectedIndex?.(index);
+      setSelectedDay(new Date(daysOfMonth[index]));
       const selectedDay = new Date(daysOfMonth[index]);
       if (selectedDay.getMonth() !== new Date(startDate).getMonth()) {
         setStartDate(selectedDay);
@@ -349,21 +365,18 @@ export default function BookScreen() {
   const fetchAvailibility = async () => {
     const result = await sql`SELECT * FROM room_availability`;
     setAvailability(result);
-    // console.log("Availability:", result);
   };
 
   const fetchTodaysAvailibility = async () => {
     const midnightToday = new Date(today);
     midnightToday.setHours(0, 0, 0, 0); // Set to local midnight
     const formattedMidnightToday = midnightToday.toISOString().split('T')[0] + 'T00:00:00.000Z';
-    console.log("midnightToday", formattedMidnightToday);
-    const result = await sql`SELECT * FROM room_availability WHERE date = ${formattedMidnightToday}`;
+    const result = await sql`SELECT * FROM room_availability WHERE date = ${midnightToday} AND clerk_id IS NULL ORDER BY id ASC`;
     setTodaysAvailability(result);
   };
 
   useEffect(() => {
     if (todaysAvailability) {
-      console.log("Todays Availability:", todaysAvailability);
     }
   }, [todaysAvailability]);
 
@@ -397,142 +410,114 @@ export default function BookScreen() {
     }));
   };
 
-  const bookTime = async (startTime: string, requestedHours: number, roomIndex: number, startDate: string) => {
+  const bookTime = async (startTime: string, requestedHours: number, roomIndex: number, startDate: Date, numberOfPeople?: number) => {
   
-    console.log("bookTime", startTime, requestedHours, roomIndex, startDate);
   
     if (!startTime) {
       alert("Please select a time to book");
       return;
     }
   
-    const formattedDate = startDate.split('T')[0] + 'T00:00:00.000Z';
-    console.log("Formatted Date:", formattedDate);
-  
-    const calculateEndTime = (start: string, hoursToBook: number) => {
-      const [date, timePart] = start.split('T');
-      const [hour, minute, second] = timePart.split(':');
-      const endHour = (parseInt(hour) + hoursToBook).toString().padStart(2, '0');
-      return `${date}T${endHour}:${minute}:${second}`;
-    };
-  
-    const endTime = calculateEndTime(startTime, requestedHours);
-  
-    const currentAvailability = await sql`SELECT * FROM room_availability WHERE date = ${formattedDate} AND room_id = ${roomIndex}`;
-  
-    console.log("currentAvailability", currentAvailability);
-  
-    currentAvailability.forEach(slot => {
-      const start = slot.start_time.split('T')[1].slice(0, 5);
-      const end = slot.end_time.split('T')[1].slice(0, 5);
-      console.log(`Available from ${start} to ${end}`);
-    });
-  
-    const isTimeAvailable = currentAvailability.some(slot => 
-      slot.start_time <= startTime && 
-      slot.end_time >= endTime
-    );
-  
-    if (!isTimeAvailable) {
-      alert("The selected time is not available. Please choose a different time.");
-      return;
+    const allTimeSlots = [
+      '12:00 AM',
+      '1:00 AM',
+      '2:00 AM',
+      '3:00 AM',
+      '4:00 AM',
+      '5:00 AM',
+      '6:00 AM',
+      '7:00 AM',
+      '8:00 AM',
+      '9:00 AM',
+      '10:00 AM',
+      '11:00 AM',
+      '12:00 PM',
+      '1:00 PM',
+      '2:00 PM',
+      '3:00 PM',
+      '4:00 PM',
+      '5:00 PM',
+      '6:00 PM',
+      '7:00 PM',
+      '8:00 PM',
+      '9:00 PM',
+      '10:00 PM',
+      '11:00 PM',
+    ];
+
+    const startIndex = allTimeSlots.indexOf(startTime);
+    const endIndex = startIndex + requestedHours;
+    const endTime = allTimeSlots[endIndex];
+    const studioSession = allTimeSlots.slice(startIndex, endIndex);
+    const numOfPeps = numberOfPeople ? numberOfPeople : 1;
+    const status = "booked";
+
+    for (const hour of studioSession) {
+      console.log("starting....")
+      try {
+        await sql`UPDATE room_availability SET clerk_id = ${user?.id} WHERE date = ${startDate} AND room_id = ${roomIndex} AND start_time = ${hour};`;
+      } catch (error) {
+        console.error(error);
+      }
+      console.log('finished....')
+    }
+    
+    try {
+      await sql`INSERT INTO bookings (room_id, start_time, end_time, number_of_people, status, clerk_id, date) VALUES (${roomIndex}, ${startTime}, ${endTime}, ${numOfPeps}, ${status}, ${user?.id}, ${selectedDay});`;
+    } catch (error) {
+      console.error(error);
     }
   
-    alert("The selected time is available. You can now book the session.");
+    alert("The session has been booked successfully");
   }
 
-  const addAdminTime = async (startTime: string, endTime: string, startDate: string) => {
-    console.log("Raw startTime:", startTime);
-    console.log("Raw endTime:", endTime);
+  const addAdminTime = async (startTime: string, endTime: string, startDate: Date) => {
 
-    const extractDateFromStartTime = (startTime: string): string => {
-      return startTime.split('T')[0] + 'T00:00:00.000Z'; // Extract date and set time to midnight
-    };
+    const allTimeSlots = [
+      '12:00 AM',
+      '1:00 AM',
+      '2:00 AM',
+      '3:00 AM',
+      '4:00 AM',
+      '5:00 AM',
+      '6:00 AM',
+      '7:00 AM',
+      '8:00 AM',
+      '9:00 AM',
+      '10:00 AM',
+      '11:00 AM',
+      '12:00 PM',
+      '1:00 PM',
+      '2:00 PM',
+      '3:00 PM',
+      '4:00 PM',
+      '5:00 PM',
+      '6:00 PM',
+      '7:00 PM',
+      '8:00 PM',
+      '9:00 PM',
+      '10:00 PM',
+      '11:00 PM',
+    ];
 
-    const extractedDate = extractDateFromStartTime(startTime);
 
-    console.log("Extracted Date:", extractedDate);
+      const startIndex = allTimeSlots.indexOf(startTime);
+      const endIndex = allTimeSlots.indexOf(endTime);
 
-    const formatTime = (time: string): string => {
-      const [date, timePart] = time.split('T');
-      const [hour, minute] = timePart.split(':');
-      const hour12 = parseInt(hour) % 12 || 12;
-      const ampm = parseInt(hour) >= 12 ? 'PM' : 'AM';
-      return `${hour12}:${minute} ${ampm}`;
-    };
+      const selectedTimeSlots = allTimeSlots.slice(startIndex, endIndex + 1);
+    
+    const roomIndices = [1, 2, 3];
 
-    const startFormatted = formatTime(startTime);
-    const endFormatted = formatTime(endTime);
-
-    console.log("Formatted Start Time:", startFormatted);
-    console.log("Formatted End Time:", endFormatted);
-
-    try {
-      const roomIndices = [1, 2, 3];
-
-      let timeSlots: string[] = [];
-      let current = startTime;
-
-      let adjustedEndTime = endTime;
-      if (adjustedEndTime < current) {
-        const datePart = adjustedEndTime.split('T')[0];
-        const newDate = new Date(datePart);
-        newDate.setDate(newDate.getDate() + 1);
-        adjustedEndTime = newDate.toISOString().split('T')[0] + adjustedEndTime.slice(10);
-      }
-
-      while (current <= adjustedEndTime) {
-        timeSlots.push(current);
-        const [date, timePart] = current.split('T');
-        const [hour, minute, second] = timePart.split(':');
-        const newHour = (parseInt(hour) + 1).toString().padStart(2, '0');
-        current = `${date}T${newHour}:${minute}:${second}`;
-      }
-
-      console.log(`Generated ${timeSlots.length} time slots`);
-      console.log("Time Slots:", timeSlots.map(slot => formatTime(slot)));
-
-      for (const roomIndex of roomIndices) {
-        for (let i = 0; i < timeSlots.length - 1; i++) {
-          const currentSlot = timeSlots[i];
-          const nextSlot = timeSlots[i + 1];
-
-          const existingAvailability = await sql`
-            SELECT * FROM room_availability 
-            WHERE room_id = ${roomIndex} 
-            AND date = ${extractedDate}
-            AND start_time = ${currentSlot} 
-            AND end_time = ${nextSlot}
-          `;
-
-          console.log("Existing Availability Query Result:", existingAvailability);
-
-          if (existingAvailability.length === 0) {
-            console.log("date", extractedDate);
-
-            await sql`
-              INSERT INTO room_availability (room_id, start_time, end_time, is_available, date)
-              VALUES (
-                ${roomIndex}, 
-                ${currentSlot}, 
-                ${nextSlot}, 
-                TRUE, 
-                ${extractedDate}
-              )
-            `;
-            console.log("Added admin time", extractedDate, currentSlot, nextSlot);
-          } else {
-            console.log("Skipping existing time slot", currentSlot, nextSlot);
-          }
+    for (const roomIndex of roomIndices) {
+      for (const selectedTimeSlot of selectedTimeSlots) {
+        try { 
+          console.log("starting....")
+          await sql`INSERT INTO room_availability (date, start_time, end_time, room_id) VALUES (${startDate}, ${selectedTimeSlot}, ${selectedTimeSlot}, ${roomIndex});`;
+          console.log('finished....')
+        } catch (error) {
+          console.error("Error inserting time slot:", error);
         }
       }
-
-      console.log('Room availability successfully added for all rooms.');
-      fetchAvailibility();
-      fetchTodaysAvailibility();
-
-    } catch (error) {
-      console.error('Error adding room availability:', error);
     }
   };
 
@@ -543,7 +528,6 @@ export default function BookScreen() {
     const userName = 'Twezo'
     const result = await sql`SELECT * FROM users WHERE clerk_id = ${user?.id}`;
     setGvoUser(result);
-    // console.log(result);
   };
 
   useEffect(() => {      
@@ -562,6 +546,74 @@ export default function BookScreen() {
     console.log("Refreshed!");
   };
 
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+
+  const toggleModal = () => {
+      setIsModalVisible(!isModalVisible);
+  };
+
+  const studioRules = `
+1. Booking Policies
+    1. Deposit & Payment:
+    •	A 50% deposit is required to confirm the booking.
+    •	Full payment is due before the session begins.
+    2. Cancellations:
+    •	Cancellations must be made at least 48 hours in advance for a refund of the deposit.
+    •	Cancellations within 48 hours will result in a forfeited deposit.
+    3. Rescheduling:
+    •	Rescheduling is allowed once, with at least 48 hours’ notice, subject to availability.
+
+2. Studio Use Guidelines
+    1. Arrival & Setup:
+    •	Clients must arrive on time. Session time begins at the scheduled time, not at arrival.
+    •	Allow sufficient time for setup and teardown within your booked session.
+    2. Cleanliness:
+    •	Leave the studio in the condition you found it. A cleaning fee may apply for excessive mess.
+    3. Guests:
+    •	A maximum of 2 guests is allowed per session unless prior approval is given.
+    4. Prohibited Items:
+    •	Smoking, vaping, drugs, and alcohol are strictly prohibited in the studio.
+    •	Weapons or illegal substances are not permitted on the premises.
+
+3. Equipment Use
+    1. Responsibility:
+    •	Clients are responsible for any damage to studio equipment during their session.
+    •	Replacement or repair costs will be charged if equipment is damaged due to negligence.
+    2. Usage:
+    •	Equipment must only be used as intended and under proper supervision.
+    •	Notify staff immediately of any issues or malfunctions.
+    
+4. Sound Levels & Noise
+    1. Volume:
+    •	Maintain appropriate sound levels to avoid disturbing other sessions or neighbors.
+    2. Noise Complaints:
+    •	Non-compliance with sound regulations may result in termination of the session without a refund.
+
+5. Liability
+    1. Personal Items:
+    •	The studio is not responsible for lost, stolen, or damaged personal items.
+    2. Injuries:
+    •	Clients and guests assume full responsibility for their safety while on the premises.
+
+6. Media Rights & Recordings
+    1. Media Sharing:
+    •	The studio may request permission to use photos or videos of the session for promotional purposes.
+    2. Privacy:
+    •	The studio respects client privacy. Sessions will not be recorded or monitored without consent.
+
+7. Termination of Session
+    1. Behavior:
+    •	Disrespectful, aggressive, or inappropriate behavior will result in immediate termination of the session without a refund.
+    2. Rule Compliance:
+    •	Non-compliance with these rules may result in being banned from future bookings.
+
+Acknowledgment
+
+By pressing the agree button below, the client agrees to abide by all studio rules and policies. Failure to comply may result in additional fees or the termination of studio access.
+
+  `
+
   return (
     <>
     <SignedIn>
@@ -570,6 +622,7 @@ export default function BookScreen() {
       </View>
       <SafeAreaView style={{width: "100%", position: "relative", zIndex: 2, backgroundColor: "transparent" }}>
         <ScrollView refreshControl={<RefreshControl colors={[gvoColors.azure]} tintColor={gvoColors.azure} refreshing={refreshing} onRefresh={handleRefresh} />} style={{height: "100%", width: "100%", backgroundColor: "transparent"}}>
+          
           <View style={{padding: 20, width: "100%", backgroundColor: "transparent"}}>
 
             <Header/>
@@ -694,12 +747,15 @@ export default function BookScreen() {
                                     <Text allowFontScaling={false} style={{color: gvoColors.dark, fontWeight: "bold", fontSize: fontSizes.small}}>?</Text>
                                   </View>
                                 </View>
-                                <View style={{width: "100%", display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
-                                  <View style={{width: "75%", display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center"}}>
+                                <View style={{width: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between"}}>
+                                  
+                                  <View style={{width: "100%", display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center"}}>
+                                    
                                     <View style={{display: "flex", flexDirection: "column", gap: 5}}>
                                       <Text allowFontScaling={false} style={{color: gvoColors.semidark, fontWeight: "bold", fontSize: fontSizes.small}}>Starts:</Text>
                                       <StartSelector availableTimes={todaysAvailability} roomId={roomIndex + 1}/>
                                     </View>
+
                                     <View style={{display: "flex", flexDirection: "column", gap: 5}}>
                                       <Text allowFontScaling={false} style={{color: gvoColors.semidark, fontWeight: "bold", fontSize: fontSizes.small}}>I want to book:</Text>
                                       <View style={{display: "flex", flexDirection: "row", gap: 6, alignItems: "center"}}>
@@ -715,18 +771,90 @@ export default function BookScreen() {
                                         <FontAwesome onPress={() => handlePlusTime(roomIndex)} name="plus" size={fontSizes.small - 3} style={{backgroundColor: gvoColors.maize, borderRadius: 50, padding: 2}} color={gvoColors.dark} />
                                       </View>
                                     </View>
+                                  
                                   </View>
-                                  <View style={{display: "flex", alignItems: "center", justifyContent: "center"}}>
-                                    <TouchableOpacity onPress={() => bookTime(userStartTime, cardTimes[roomIndex] || defaultTimeAmount, roomIndex + 1, userStartTime)} style={{display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: gvoColors.azure, padding: 10, borderRadius: 6}}>
-                                      <Text allowFontScaling={false} style={{color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small}}>Book</Text>
+
+                                  <View style={{display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between"}}>
+                                    
+                                    <View style={{display: "flex", flexDirection: "row", gap: 10, alignItems: "center", paddingVertical: 10, width: '70%'}}>
+                                      <View style={{ backgroundColor: agreedToTerms ? gvoColors.azure : gvoColors.semidark, borderRadius: 50, padding: 4, height: 20, width: 20, alignItems: 'center'}}>
+                                        <FontAwesome name="check" size={fontSizes.small - 3} style={{}} color={agreedToTerms ? gvoColors.dutchWhite : gvoColors.dark} />
+                                      </View>
+                                      {agreedToTerms ? (
+                                        <Text allowFontScaling={false} style={{color: agreedToTerms ? gvoColors.dutchWhite : gvoColors.semidark, fontWeight: "bold", fontSize: fontSizes.small}}>I have read and agree to the studio terms and rules</Text>
+                                      ) : (
+                                        <Text allowFontScaling={false} style={{color: agreedToTerms ? gvoColors.dutchWhite : gvoColors.semidark, fontWeight: "bold", fontSize: fontSizes.small}}>Press 'terms' to agree and book your session</Text>
+
+                                      )}
+                                    </View>
+
+                                    <TouchableOpacity onPress={() => {agreedToTerms ? bookTime(userStartTime, cardTimes[roomIndex] || defaultTimeAmount, roomIndex + 1, selectedDay) : setIsModalVisible(true)}} style={{display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: agreedToTerms ? gvoColors.azure : gvoColors.semidark, padding: 10, borderRadius: 6}}>
+
+                                          {agreedToTerms ? (
+                                            <Text allowFontScaling={false} style={{color: agreedToTerms ? gvoColors.dutchWhite : gvoColors.dark, fontWeight: "bold", fontSize: fontSizes.small}}>Book</Text>
+                                          ) : (                                         
+                                            <Text allowFontScaling={false} style={{color: agreedToTerms ? gvoColors.dutchWhite : gvoColors.dark, fontWeight: "bold", fontSize: fontSizes.small}}>Terms</Text>
+                                          ) }
+                                    
                                     </TouchableOpacity>
+
                                   </View>
+
+                               
                                 </View>
                               </View>
                             </View>
                             ))
                           // ))
                         )}
+                        <Modal
+                          animationType="slide" 
+                          transparent={true} 
+                          visible={isModalVisible}
+                          onRequestClose={toggleModal}
+                          style={{width: '100%', height: '100%', display: 'flex', alignContent: 'center', alignItems: 'center',  justifyContent: 'center' }}
+                        >
+
+                        <View style={{width: '100%', top: '10%', right: '10%', position: 'absolute', zIndex: 2, display: 'flex', alignItems: 'flex-end', backgroundColor: "transparent"}}>
+                          <TouchableOpacity onPress={toggleModal}>
+                            <FontAwesome name="close" size={30} color={gvoColors.dutchWhite} />
+                          </TouchableOpacity>
+                        </View>
+
+                        <View style={{width: '100%', height: '100%', display: 'flex', alignContent: 'center', alignItems: 'center',  justifyContent: 'center', backgroundColor: 'rgba(0, 0, 0, 0.9)', }}>
+
+                          <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={10} style={{paddingHorizontal: 20, borderRadius: 10, width: '90%', height: '70%', gap: 20, display: 'flex', justifyContent: 'flex-start', paddingVertical: "5%"}}>
+                            
+
+                            <ScrollView>
+                              <Text style={{color: gvoColors.dutchWhite, fontSize: fontSizes.medium}}>
+                              Studio Rules & 
+                              </Text>
+                              <Text style={{color: gvoColors.dutchWhite, fontSize: fontSizes.medium}}> 
+                              Terms for Booking
+                              </Text>
+                              <View style={{height: 10}}/>
+                              
+                              <Text style={{color: gvoColors.dutchWhite, fontSize: fontSizes.small}}>
+                              To ensure a smooth and professional experience, clients must agree to the following rules before booking:
+                              </Text>
+                              <Text style={{color: gvoColors.dutchWhite, textAlign: 'left'}}>
+                                {studioRules}
+                              </Text>
+                            </ScrollView>
+
+                            <View>
+                              <Pressable onPress={() => {setAgreedToTerms(true); toggleModal();}} style={{backgroundColor: gvoColors.azure, padding: 10, borderRadius: 600}}>
+                                <Text style={{color: gvoColors.dutchWhite, fontSize: fontSizes.small, fontWeight: 'bold', textAlign: 'center'}}>Agree</Text>
+                              </Pressable>
+                            </View>
+
+                          </KeyboardAvoidingView>
+
+
+
+                        </View>
+                        </Modal>
                       </>
                     )}
                     </>
@@ -763,7 +891,7 @@ export default function BookScreen() {
                                       </View>
                                   </View>
                                   <View style={{display: "flex", alignItems: "center", justifyContent: "center"}}>
-                                    <TouchableOpacity onPress={() => addAdminTime(adminStartTime, adminEndTime, adminStartTime)} style={{display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: gvoColors.azure, padding: 10, borderRadius: 6}}>
+                                    <TouchableOpacity onPress={() => addAdminTime(adminStartTime, adminEndTime, selectedDay)} style={{display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: gvoColors.azure, padding: 10, borderRadius: 6}}>
                                       <Text allowFontScaling={false} style={{color: gvoColors.dutchWhite, fontWeight: "bold", fontSize: fontSizes.small}}>Book</Text>
                                     </TouchableOpacity>
                                   </View>
@@ -788,6 +916,7 @@ export default function BookScreen() {
             </View>
 
           </View>
+        
         </ScrollView>
       </SafeAreaView>
 
